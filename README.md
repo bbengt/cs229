@@ -6,6 +6,6 @@ This game was written for Computer Science 229 using C and C++.  It's an old-sch
 ### Progress
 The game is still (very much) a work in progress.  It can currently:
 
-*Generate a game map, complete with rooms and corridors
-*Save and load the game state (currently only the game map)
-*Calculate the shortest path between two random open points on the map (for monster AI)
+* Generate a game map, complete with rooms and corridors
+* Save and load the game state (currently only the game map)
+* Calculate the shortest path between two random open points on the map (for monster AI)
