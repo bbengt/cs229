@@ -1,0 +1,1 @@
+This program meets the spec because it generates a path between two points, marking the path with '*' characters.  I visually confirmed the path is the shortest.

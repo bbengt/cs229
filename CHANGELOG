@@ -1,0 +1,56 @@
+Date:   Mon Feb 9
+
+    Documented code, cleaned up code a bit
+
+Date:   Sun Feb 8
+
+    Moved config information to config.h header file
+    Wrote binary_search.c to hold all binary search operations & information 
+
+    Wrote initial version of dijkstra() - works sometimes, but occasionally can't find elements in the queue
+
+    Discovered cause of error finding elements in the queue - I decreased the count but didn't remove them from the queue.  Fixed this issue.
+
+Date:   Fri Feb 6
+
+    Rewrote dungeon.c to be a combination of the professor's ideas and mine
+
+Date:   Mon Feb 2
+    
+    Fully implemented save() and load() functions.  Tested using given sample files and it all worked as expected.
+
+Date:   Thu Jan 29
+
+    initial draft of save() - doesn't work.  Map is now stored in a 2D array of cell structs, which contain the information exported/imported in the save()/load() functions respectively.  Calculation of remaining file size is incorrect.
+
+Date:   Wed Jan 28
+
+    code cleanup - moved initialization tasks to an initialize() method to clean up main() a bit.  Added in stubs for command line switches.
+
+Date:   Tue Jan 27
+
+    Fixes to make hw1.02 easier.  Also worked on code-cleanup and improving corridor-generation.
+
+Date:   Mon Jan 26
+
+    rewrote to be like original program with improvements
+    
+    This version works.  It's not pretty, but it works.  Rewrote to be like original program with minor improvements.
+
+Date:   Sun Jan 25
+
+    added distance change penalty
+
+Date:   Sat Jan 24
+
+    rewrote to generate room, then make corridor, then generate another room
+    
+    not currently working - rooms are generated too close to each other and a valid room can't be created
+
+Date:   Thu Jan 22
+
+    working valid_room() and generate_room(), very rough draft of generate_corridor()
+    
+    valid_room() and generate_room() are both fully implemented and working.  Number of rooms is MIN_ROOMS < total_rooms < MIN_ROOMS * 2.
+
+    Started implementing generate_corridor().  Randomly select a starting point on a random wall for each room, then print them out.  The next step will be to generate a path to follow to connect the two points.  Implemented a rock hardness.
