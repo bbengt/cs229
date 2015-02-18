@@ -1,9 +1,9 @@
-# Computer Science 229 Rogue-Like Game
+## Computer Science 229 Rogue-Like Game
 
-## Overview
+### Overview
 This game was written for Computer Science 229 using C and C++.  It's an old-school rogue-like game (see [this Wikipedia article](https://en.wikipedia.org/wiki/Roguelike) for more on rogue-like games.  Eventually, it will only render the area of the game map around the user, have monsters that will chase the player around the dungeon, and many other features common to rogue-like games.
 
-## Progress
+### Progress
 The game is still (very much) a work in progress.  It can currently:
 
 -Generate a game map, complete with rooms and corridors
