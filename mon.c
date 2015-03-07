@@ -6,102 +6,6 @@
 
 /*
 *
-* print_dij(): updates the game map in dungeon to have ter_debug along the shortest path as determined by dijkstra()
-*
-*/
-
-void print_dij(dungeon_t *dungeon, path_t *node) {
-
-	if(node != NULL) {
-		dungeon->map[node->y][node->x] = ter_debug;
-		print_dij(dungeon, node->prev);
-	} else {
-		return;
-	}
-
-}
-
-/*
-*
-* dijkstra(): finds the shortest path from (start_x, start_y) to (end_x, end_y) while only traversing open spaces
-*
-*/
-// path_t *last;
-// int dijkstra(dungeon_t *dungeon, int start_x, int start_y, int end_x, int end_y) {
-
-// 	queue_t qu;
-// 	qu.num_elements = 0;
-// 	queue_t *q = &qu;
-
-// 	// create a path representation of each cell on the map - set each cost to "infinite" unless it's the source node (which has cost 0)
-// 	uint32_t x, y;
-// 	for(y = 0; y < DUNG_Y; y++) {
-// 		for(x = 0; x < DUNG_X; x++) {
-// 			int cost = INT_MAX;
-// 			if(x == start_x && y == start_y) { // source node
-// 				cost = 0;
-// 			}
-// 			add_element(q, x, y, cost);
-// 		}
-// 	}
-
-// 	path_t *u;
-
-// 	// loop through the queue, removing the node with the smallest cost each time
-// 	for(;;) {
-// 		u = remove_min(q);
-// 		u->scanned = 1;
-// 		if(u->x == end_x && u->y == end_y) {
-// 			break;
-// 		}
-
-// 		uint32_t x, y;
-// 		x = u->x;
-// 		y = u->y;
-// 		uint32_t i, j;
-
-// 		// look at each neighbor of u.  If we haven't already scanned it, calculate its cost. 
-// 		for(j = y - 1; j < y + 2; j++) {
-// 			for(i = x - 1; i < x + 2; i++) {
-
-// 				// make sure we don't run off the edge of the map
-// 				if(i < 0) {
-// 					i = 0;
-// 				}
-// 				if(i > DUNG_X - 1) {
-// 					i = DUNG_X - 1;
-// 				}
-// 				if(j < 0) {
-// 					j = 0;
-// 				}
-// 				if(j > DUNG_Y - 1) {
-// 					j = DUNG_Y - 1;
-// 				}
-
-// 				path_t *v = fetch_at_pos(q, i, j);
-
-// 				// if we haven't already scanned v, make sure it's an open space before updating the cost (u's cost + 1) 
-// 				if(v->scanned == 0) {
-// 					if(dungeon->map[j][i] == ter_corridor || dungeon->map[j][i] == ter_room) {
-// 						int tmp = u->cost + 1;
-// 						if(tmp < v->cost) {
-// 							v->cost = tmp;
-// 							v->prev = u;
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	last = u;
-
-// 	return 1;
-
-// }
-
-/*
-*
 * init_mons(): initialize monsters & place on dungeon map
 *
 */
@@ -137,9 +41,9 @@ int init_mons(dungeon_t *dungeon) {
 		m.telepathic = rand() % 2;
 		m.smart = rand() % 2;
 
-		// initially set last saw location to player location.  This will be updated accordingly in the second turn.
-		m.last_saw_x = dungeon->player.x;
-		m.last_saw_y = dungeon->player.y;
+		// initially set last saw location to an invalid location.  This indicates that the monster hasn't seen the player yet
+		m.last_saw_x = -1;
+		m.last_saw_y = -1;
 
 		c.m = &m;
 		c.p = NULL;

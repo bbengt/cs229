@@ -8,7 +8,6 @@
 #include "heap.h"
 #include "mon.h"
 #include "player.h"
-// #include "heap.c"
 
 int32_t compare_characters_by_next_turn(const void *character1,
                                         const void *character2)
@@ -22,88 +21,131 @@ int32_t compare_distance_from_player(const void *cell1, const void *cell2) {
 	return (((cell_t *) cell1)->cost - ((cell_t *) cell2)->cost);
 }
 
+typedef struct path {
+  heap_node_t *hn;
+  uint8_t x, y;
+} path_t;
+
 /*
 *
 * dijkstra(): assigns a cost to each cell in the map based on distance from the player
 *
 */
-int dijkstra(dungeon_t *dungeon) {
+static dungeon_t *dungeon;
 
-	heap_t h;
-	heap_init(&h, compare_distance_from_player, NULL);
+static int32_t dist_cmp(const void *key, const void *with) {
+  return ((int32_t) dungeon->distance[((path_t *) key)->y]
+                                        [((path_t *) key)->x] -
+          (int32_t) dungeon->distance[((path_t *) with)->y]
+                                        [((path_t *) with)->x]);
+}
 
-	// create a path representation of each cell on the map - set each cost to "infinite" unless it's the source node (which has cost 0)
-	uint32_t x, y;
-	for(y = 0; y < DUNG_Y; y++) {
-		for(x = 0; x < DUNG_X; x++) {
-			int cost = INT_MAX;
-			if(x == dungeon->player.x && y == dungeon->player.y) { // source node
-				cost = 0;
-			}
-			cell_t c = { x, y, NULL, cost, 0 };
-			heap_insert(&h, &c);
-		}
-	}
+void dijkstra(dungeon_t *d)
+{
+  /* Currently assumes that monsters only move on floors.  Will *
+   * need to be modified for tunneling and pass-wall monsters.  */
 
-	// loop through the queue, removing the node with the smallest cost each time
-	while(h.size > 0) {
-		cell_t *u = heap_remove_min(&h);
-		u->scanned = 1;
+  heap_t h;
+  uint32_t x, y;
+  static path_t p[DUNG_Y][DUNG_X], *c;
+  static uint32_t initialized = 0;
 
-		uint32_t x, y;
-		x = u->x;
-		y = u->y;
-		uint32_t i, j;
+  if (!initialized) {
+    initialized = 1;
+    dungeon = d;
+    for (y = 0; y < DUNG_Y; y++) {
+      for (x = 0; x < DUNG_X; x++) {
+        p[y][x].y = y;
+        p[y][x].x = x;
+      }
+    }
+  }
 
-		// look at each neighbor of u.  If we haven't already scanned it, calculate its cost. 
-		for(j = y - 1; j < y + 2; j++) {
-			for(i = x - 1; i < x + 2; i++) {
+  for (y = 0; y < DUNG_Y; y++) {
+    for (x = 0; x < DUNG_X; x++) {
+      d->distance[y][x] = 255;
+    }
+  }
+  d->distance[d->player.y][d->player.x] = 0;
 
-				// make sure we don't run off the edge of the map
-				if(i < 0) {
-					i = 0;
-				}
-				if(i > DUNG_X - 1) {
-					i = DUNG_X - 1;
-				}
-				if(j < 0) {
-					j = 0;
-				}
-				if(j > DUNG_Y - 1) {
-					j = DUNG_Y - 1;
-				}
+  heap_init(&h, dist_cmp, NULL);
 
-				// find node at (i, j)
-				heap_node_t *hn = h.min;
-				cell_t v_tmp;
-				while(hn != NULL) {
-					cell_t *tmp_c = hn->datum;
-					if(tmp_c->x == i && tmp_c->y == j) {
-						v_tmp = *tmp_c;
-						break;
-					}
-					hn = hn->next;
-				}
+  for (y = 0; y < DUNG_Y; y++) {
+    for (x = 0; x < DUNG_X; x++) {
+      if (dungeon->map[y][x] == ter_room || dungeon->map[y][x] == ter_corridor) {
+        p[y][x].hn = heap_insert(&h, &p[y][x]);
+      }
+    }
+  }
 
-				cell_t *v = &v_tmp;
-
-				// if we haven't already scanned v, make sure it's an open space before updating the cost (u's cost + 1) 
-				if(v->scanned == 0) {
-					if(dungeon->map[j][i] == ter_corridor || dungeon->map[j][i] == ter_room) {
-						int tmp = u->cost + 1;
-						if(tmp < v->cost) {
-							v->cost = tmp;
-							v->prev = u;
-							dungeon->distance[v->y][v->x] = v->cost;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return 1;
-
+  while ((c = heap_remove_min(&h))) {
+    c->hn = NULL;
+    if ((p[c->y - 1][c->x - 1].hn) &&
+        (d->distance[c->y - 1][c->x - 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y - 1][c->x - 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y - 1][c->x - 1].hn);
+    }
+    if ((p[c->y - 1][c->x    ].hn) &&
+        (d->distance[c->y - 1][c->x    ] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y - 1][c->x    ] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y - 1][c->x    ].hn);
+    }
+    if ((p[c->y - 1][c->x + 1].hn) &&
+        (d->distance[c->y - 1][c->x + 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y - 1][c->x + 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y - 1][c->x + 1].hn);
+    }
+    if ((p[c->y    ][c->x - 1].hn) &&
+        (d->distance[c->y    ][c->x - 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y    ][c->x - 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y    ][c->x - 1].hn);
+    }
+    if ((p[c->y    ][c->x + 1].hn) &&
+        (d->distance[c->y    ][c->x + 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y    ][c->x + 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y    ][c->x + 1].hn);
+    }
+    if ((p[c->y + 1][c->x - 1].hn) &&
+        (d->distance[c->y + 1][c->x - 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y + 1][c->x - 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y + 1][c->x - 1].hn);
+    }
+    if ((p[c->y + 1][c->x    ].hn) &&
+        (d->distance[c->y + 1][c->x    ] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y + 1][c->x    ] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y + 1][c->x    ].hn);
+    }
+    if ((p[c->y + 1][c->x + 1].hn) &&
+        (d->distance[c->y + 1][c->x + 1] >
+         d->distance[c->y][c->x] + 1)) {
+      d->distance[c->y + 1][c->x + 1] =
+        d->distance[c->y][c->x] + 1;
+      heap_decrease_key_no_replace(&h,
+                                   p[c->y + 1][c->x + 1].hn);
+    }
+  }
+  heap_delete(&h);
 }
 
 int run_game(dungeon_t *dungeon) {

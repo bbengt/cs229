@@ -5,7 +5,7 @@
 
 int32_t compare_characters_by_next_turn(const void *character1, const void *character2);
 int32_t compare_distance_from_player(const void *cell1, const void *cell2);
-int dijkstra(dungeon_t *dungeon);
+void dijkstra(dungeon_t *dungeon);
 int run_game(dungeon_t *dungeon);
 
 #endif

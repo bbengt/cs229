@@ -15,3 +15,8 @@ The game is still (very much) a work in progress.  It can currently:
 If you want to try running this game, clone the repo, or download and extract the Zip copy of the archive.  Once you have the files:
   * On Linux: open a Terminal window in the directory that contains the files you downloaded, then type `make` to compile the program, then `./dungeon` to run the program.
   * On any other platform: Sorry, I can't be of any help here.  This was written on and designed for Linux.  I'm not sure if it'll work on other platforms.
+
+### Credits
+
+  * Jeremy Sheaffer - my Computer Science 229 professor. He wrote the code for the heap (heap.c & heap.h) as well as the slightly 
+unusual implementation of Dijkstra's algorithm (dijkstra() in rungame.c).
