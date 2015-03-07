@@ -6,8 +6,11 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <math.h>
-#include "mob.c"
-#include "player.c"
+
+#include "config.h"
+#include "map.h"
+#include "mon.h"
+#include "player.h"
 
 /*
 *
@@ -339,28 +342,32 @@ int generate_map(dungeon_t *dungeon) {
 
 	connect_rooms(dungeon);
 
-	int end_x, end_y;
 	for(;;) {
+
+		x = rand() % DUNG_X;
+		y = rand() % DUNG_Y;
+		if(dungeon->map[y][x] == ter_room) {
+			break;
+		}
+
+	}
+
+	dungeon->map[y][x] = ter_stair_up;
+
+	for(;;) {
+
 		x = rand() % DUNG_X;
 		y = rand() % DUNG_Y;
 
-		if(dungeon->map[y][x] == ter_room || dungeon->map[y][x] == ter_corridor) {
-			break;
-		}
-	}
-	for(;;) {
-		end_x = rand() % DUNG_X;
-		end_y = rand() % DUNG_Y;
-
-		if(dungeon->map[end_y][end_x] == ter_room || dungeon->map[end_y][end_x] == ter_corridor) {
+		if(dungeon->map[y][x] == ter_room) {
 			break;
 		}
 	}
 
-	dijkstra(dungeon, x, y, end_x, end_y);
+	dungeon->map[y][x] = ter_stair_down;
 
-	// init_mobs(dungeon);
-	// init_player(dungeon);
+	init_player(dungeon);
+	init_mons(dungeon);
 
 	return 0;
 
@@ -397,11 +404,11 @@ int print_map(dungeon_t *dungeon) {
 		}
 	}
 	int i;
-	for(i = 0; i < dungeon->num_mobs; i++) {
-		tmp_map[dungeon->mobs[i].y][dungeon->mobs[i].x] = dungeon->mobs[i].type;
+	for(i = 0; i < dungeon->num_mons; i++) {
+		tmp_map[dungeon->mons[i].y][dungeon->mons[i].x] = dungeon->mons[i].type;
 	}
 
-	// tmp_map[dungeon->player.y][dungeon->player.x] = PLAYER_CHAR;
+	tmp_map[dungeon->player.y][dungeon->player.x] = PLAYER_CHAR;
 
 	for(y = 0; y < DUNG_Y; y++) {
 		for(x = 0; x < DUNG_X; x++) {

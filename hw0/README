@@ -1,0 +1,7 @@
+This program complies with the spec fully and can also be 
+used with any size board.  The program uses a recursive 
+method (knightsTour()) that implements the backtracking 
+algorithm.  The valid() method checks the validity of a given 
+move.  Running the program on a 5 x 5 board results in a 
+result set of 1728 solutions, the maximum number of possible 
+solutions on a 5 x 5 board.

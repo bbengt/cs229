@@ -1,0 +1,1 @@
+This program meets spec in that it allows user input and updates appropriately.  It also includes staircases and generates new dungeons for a new floor.  It doesn't meet spec because it doesn't have a working "Look mode".  I have code in place, but it doesn't work properly.

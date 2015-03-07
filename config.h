@@ -4,10 +4,14 @@
 #define MIN_ROOM_X 8 	// minimum measurement of each room in the x direction
 #define MIN_ROOM_Y 5 	// minimum measurement of each room in the y direction
 #define MIN_ROOMS 12 	// minimum number of rooms to generate
+#define DRAW_X 80
+#define DRAW_Y 24
 
 #define PLAYER_CHAR '@'	// character to represent a player on the game map
 
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #ifndef CONFIG_H
 #define CONFIG_H
@@ -18,6 +22,8 @@ typedef enum terrain {
 	ter_corridor,
 	ter_immutable,
 	ter_debug,
+	ter_stair_up,
+	ter_stair_down,
 } terrain_t;
 
 typedef struct room {
@@ -27,17 +33,12 @@ typedef struct room {
 	uint32_t y_height;
 } room_t;
 
-typedef struct mob {
-	uint32_t x;
-	uint32_t y;
+typedef struct mon {
 	uint8_t telepathic;
 	uint8_t smart;
-	uint8_t speed;
-	char type;
-
 	uint32_t last_saw_x;
 	uint32_t last_saw_y;
-} mob_t;
+} mon_t;
 
 typedef struct player {
 	uint32_t x;
@@ -45,14 +46,35 @@ typedef struct player {
 	uint8_t speed;
 } player_t;
 
+typedef struct character {
+	int x;
+	int y;
+	int speed;
+	char type;
+	mon_t *m;
+	player_t *p;
+	int next_turn;
+	uint8_t alive;
+} character_t;
+
+typedef struct cell {
+	uint32_t x, y;
+	struct cell *prev;
+	uint32_t cost;
+	uint8_t scanned;
+} cell_t;
+
 typedef struct dungeon {
 	uint8_t map[DUNG_Y][DUNG_X];
 	uint8_t hardness[DUNG_Y][DUNG_X];
 	uint32_t num_rooms;
-	uint32_t num_mobs;
-	mob_t mobs[DUNG_Y * DUNG_X];
+	uint32_t num_mons;
+	character_t mons[DUNG_Y * DUNG_X];
 	room_t rooms[MIN_ROOMS * 2];
-	player_t player;
+	character_t player;
+	uint8_t look_mode;
+	uint32_t look_mode_x, look_mode_y; 
+	uint32_t distance[DUNG_Y][DUNG_X];
 } dungeon_t;
 
 #endif
