@@ -204,7 +204,9 @@ int run_game(dungeon_t *dungeon) {
 		}
 
 		if(c->p == NULL && c->x == dungeon->player.x && c->y == dungeon->player.y) {
-			printf("Player died.\n");
+	   
+      // delete save file
+
 			endwin();
 			exit(0);
 		}

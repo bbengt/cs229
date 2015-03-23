@@ -5,6 +5,7 @@
 #include "screen.h"
 #include "map.h"
 #include "rungame.h"
+#include "io.h"
 
 int init_player(dungeon_t *dungeon) {
 
@@ -203,7 +204,8 @@ int move_player(dungeon_t *dungeon) {
 
 		/* save and quit */	
 		case 'S':
-			// save
+		
+			save(dungeon);
 			endwin();
 			exit(1);
 			break;

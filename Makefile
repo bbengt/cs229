@@ -1,8 +1,7 @@
-#assignment := $(shell git symbolic-ref --short HEAD | cut -c3-6)
-assignment=1.05
-OBJS = map.o binary_search.o mon.o player.o rungame.o screen.o heap.o main.o
+assignment := $(shell git symbolic-ref --short HEAD | cut -c3-6)
+OBJS = map.o binary_search.o mon.o player.o rungame.o screen.o heap.o main.o io.o
 
-.PHONY: clean objs dungeon
+.PHONY: clean objs dungeon cleanup
 
 %.o: %.c
 	echo Compiling $<
@@ -15,6 +14,10 @@ dungeon: $(OBJS)
 clean:
 	rm -f dungeon
 	rm -f out.txt
+	rm -f *.d
+	rm -f *.o
+
+cleanup:
 	rm -f *.d
 	rm -f *.o
 

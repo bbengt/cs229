@@ -9,7 +9,5 @@ int connect_rooms_sim(dungeon_t *dungeon, room_t *r1, room_t *r2);
 int connect_rooms(dungeon_t *dungeon);
 int generate_map(dungeon_t *dungeon);
 int print_map(dungeon_t *dungeon);
-int save(dungeon_t *dungeon);
-int load(dungeon_t *dungeon);
 
 #endif
