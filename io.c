@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "io.h"
 
@@ -138,7 +139,6 @@ int save(dungeon_t *dungeon) {
 
 	for(i = 0; i < dungeon->num_mons; i++) {
 
-		char type = dungeon->mons[i].type;
 		uint8_t mon_x = dungeon->mons[i].x;
 		uint8_t mon_y = dungeon->mons[i].y;
 		uint8_t mon_speed = dungeon->mons[i].speed;
@@ -150,6 +150,7 @@ int save(dungeon_t *dungeon) {
 		uint32_t mon_next_turn = dungeon->mons[i].next_turn;
 		uint32_t empty = 0;
 
+		fwrite(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
 		fwrite(&mon_x, sizeof(mon_x), 1, f);
 		fwrite(&mon_y, sizeof(mon_y), 1, f);
 		fwrite(&mon_speed, sizeof(mon_speed), 1, f);
@@ -196,7 +197,7 @@ int load(dungeon_t *dungeon) {
 	if(strncmp(id, "RLG229", 6)) {
 		return 0;
 	}
-	uint32_t i32, remaining_size;
+	uint32_t i32;
 	uint16_t i16;
 
 	// read version number
@@ -204,7 +205,6 @@ int load(dungeon_t *dungeon) {
 
 	// read in remaining file size
 	fread(&i32, sizeof(i32), 1, f);
-	remaining_size = be32toh(i32);
 
 	// read in user block offset
 	fread(&i32, sizeof(i32), 1, f);
