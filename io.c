@@ -28,7 +28,7 @@ int save(dungeon_t *dungeon) {
 
 	if(!(f = fopen(filename, "w"))) {
 		fprintf(stderr, "Could not open file\n");
-		return 1;
+		return 0;
 	}
 
 	// write filetype & version number
@@ -37,8 +37,13 @@ int save(dungeon_t *dungeon) {
 	uint32_t version = htobe32(1);
 	fwrite(&version, sizeof(version), 1, f);
 
+	// remaining file size
+	uint32_t remaining_size = 4 + (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36);
+	fwrite(&remaining_size, sizeof(remaining_size), 1, f);
 
-	// ADD IN USER BLOCK BYTES
+	// user block offset
+	uint32_t user_block_offset = (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36);
+	fwrite(&user_block_offset, sizeof(user_block_offset), 1, f);
 
 	// write map data
 	int x, y;
@@ -107,6 +112,7 @@ int save(dungeon_t *dungeon) {
 		}
 	}
 
+	// write room information
 	uint16_t room_count = htobe16(dungeon->num_rooms);
 	fwrite(&room_count, sizeof(room_count), 1, f);
 
@@ -124,9 +130,11 @@ int save(dungeon_t *dungeon) {
 	fwrite(&play_x, sizeof(play_x), 1, f);
 	fwrite(&play_y, sizeof(play_y), 1, f);
 
-	// GAME TURN
+	uint32_t game_turn = dungeon->player.next_turn;
+	fwrite(&game_turn, sizeof(game_turn), 1, f);
 
-	// MONSTER GENERATION SEQUENCE NUMBER
+	uint32_t sequence_num = dungeon->num_mons + 1;
+	fwrite(&sequence_num, sizeof(sequence_num), 1, f);
 
 	for(i = 0; i < dungeon->num_mons; i++) {
 
@@ -138,7 +146,7 @@ int save(dungeon_t *dungeon) {
 		uint8_t telepathic = dungeon->mons[i].m->telepathic;
 		uint8_t last_saw_x = dungeon->mons[i].m->last_saw_x;
 		uint8_t last_saw_y = dungeon->mons[i].m->last_saw_y;
-		// sequence number
+		uint8_t mon_seq_num = i;
 		uint32_t mon_next_turn = dungeon->mons[i].next_turn;
 		uint32_t empty = 0;
 
@@ -149,7 +157,7 @@ int save(dungeon_t *dungeon) {
 		fwrite(&telepathic, sizeof(smart), 1, f);
 		fwrite(&last_saw_x, sizeof(last_saw_x), 1, f);
 		fwrite(&last_saw_y, sizeof(last_saw_y), 1, f);
-		// sequence number
+		fwrite(&mon_seq_num, sizeof(mon_seq_num), 1, f);
 		fwrite(&mon_next_turn, sizeof(mon_next_turn), 1, f);
 
 		// write 20 bytes of zeros
@@ -159,7 +167,7 @@ int save(dungeon_t *dungeon) {
 
 	fclose(f);
 
-	return 0;
+	return 1;
 
 }
 
