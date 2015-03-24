@@ -197,6 +197,7 @@ int load(dungeon_t *dungeon) {
 	if(strncmp(id, "RLG229", 6)) {
 		return 0;
 	}
+
 	uint32_t i32;
 	uint16_t i16;
 
@@ -249,6 +250,13 @@ int load(dungeon_t *dungeon) {
 		fread(&dungeon->rooms[i].y_height, sizeof(dungeon->rooms[i].y_height), 1, f);
 	}
 
+	// read in PC location
+	fread(&dungeon->player.x, sizeof(dungeon->player.x), 1, f);
+	fread(&dungeon->player.y, sizeof(dungeon->player.y), 1, f);
+
+	// set PC speed
+	dungeon->player.speed = 20;
+
 	// read in PC's next turn (game turn)
 	fread(&dungeon->player.next_turn, sizeof(dungeon->player.next_turn), 1, f);
 
@@ -261,19 +269,29 @@ int load(dungeon_t *dungeon) {
 
 	// read in NPCs
 	for(i = 0; i < dungeon->num_mons; i++) {
+
+		// allocate memory for m in mons array
+		mon_t m;
+
 		fread(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
 		fread(&dungeon->mons[i].x, sizeof(dungeon->mons[i].x), 1, f);
 		fread(&dungeon->mons[i].y, sizeof(dungeon->mons[i].y), 1, f);
 		fread(&dungeon->mons[i].speed, sizeof(dungeon->mons[i].speed), 1, f);
-		fread(&dungeon->mons[i].m->smart, sizeof(dungeon->mons[i].m->smart), 1, f);
-		fread(&dungeon->mons[i].m->telepathic, sizeof(dungeon->mons[i].m->telepathic), 1, f);
-		fread(&dungeon->mons[i].m->last_saw_x, sizeof(dungeon->mons[i].m->last_saw_x), 1, f);
-		fread(&dungeon->mons[i].m->last_saw_y, sizeof(dungeon->mons[i].m->last_saw_y), 1, f);
+		fread(&m.smart, sizeof(m.smart), 1, f);
+		fread(&m.telepathic, sizeof(m.telepathic), 1, f);
+		fread(&m.last_saw_x, sizeof(m.last_saw_x), 1, f);
+		fread(&m.last_saw_y, sizeof(m.last_saw_y), 1, f);
 		fread(&i32, sizeof(i32), 1, f);
 		fread(&dungeon->mons[i].next_turn, sizeof(dungeon->mons[i].next_turn), 1, f);
 
+		dungeon->mons[i].m = &m;
+
 		// read in extra 20 bytes
-		fread(&i32, sizeof(i32), 5, f);
+		fread(&i32, sizeof(i32), 1, f);
+		fread(&i32, sizeof(i32), 1, f);
+		fread(&i32, sizeof(i32), 1, f);
+		fread(&i32, sizeof(i32), 1, f);
+		fread(&i32, sizeof(i32), 1, f);
 	}
 
 	fclose(f);

@@ -150,8 +150,8 @@ void dijkstra(dungeon_t *d)
 
 int run_game(dungeon_t *dungeon) {
 	dungeon->look_mode = 0;
-	dungeon->look_mode_x = -1;
-	dungeon->look_mode_y = -1;
+	dungeon->look_mode_x = 255;
+	dungeon->look_mode_y = 255;
 
 	init_term();
 	update_term(dungeon, dungeon->player.x, dungeon->player.y);

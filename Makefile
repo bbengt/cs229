@@ -9,7 +9,7 @@ OBJS = map.o binary_search.o mon.o player.o rungame.o screen.o heap.o main.o io.
 
 dungeon: $(OBJS) 
 	echo Linking $@
-	gcc $^ -o $@ -lm -lncurses
+	gcc -Wall -Werror -ggdb $^ -o $@ -lm -lncurses
 
 clean:
 	rm -f dungeon

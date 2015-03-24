@@ -42,8 +42,8 @@ int init_mons(dungeon_t *dungeon) {
 		m.smart = rand() % 2;
 
 		// initially set last saw location to an invalid location.  This indicates that the monster hasn't seen the player yet
-		m.last_saw_x = -1;
-		m.last_saw_y = -1;
+		m.last_saw_x = 255;
+		m.last_saw_y = 255;
 
 		c.m = &m;
 		c.p = NULL;
@@ -114,8 +114,8 @@ int move_mon(dungeon_t *dungeon, character_t *mon) {
 			mon->m->last_saw_x = dungeon->player.x;
 			mon->m->last_saw_y = dungeon->player.y;
 		} else {
-			mon->m->last_saw_x = -1;
-			mon->m->last_saw_y = -1;
+			mon->m->last_saw_x = 255;
+			mon->m->last_saw_y = 255;
 		}
 		play_x = mon->m->last_saw_x;
 		play_y = mon->m->last_saw_y;
