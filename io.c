@@ -196,7 +196,7 @@ int load(dungeon_t *dungeon) {
 	if(strncmp(id, "RLG229", 6)) {
 		return 0;
 	}
-	uint32_t i32;
+	uint32_t i32, remaining_size;
 	uint16_t i16;
 
 	// read version number
@@ -204,9 +204,13 @@ int load(dungeon_t *dungeon) {
 
 	// read in remaining file size
 	fread(&i32, sizeof(i32), 1, f);
+	remaining_size = be32toh(i32);
+
+	// read in user block offset
+	fread(&i32, sizeof(i32), 1, f);
 
 	// read in map
-	uint8_t open, room, corridor;
+	uint8_t open, room, corridor, stairs;
 	int x, y;
 	for(y = 0; y < DUNG_Y; y++) {
 		for(x = 0; x < DUNG_X; x++) {
@@ -214,6 +218,7 @@ int load(dungeon_t *dungeon) {
 			fread(&room, sizeof(room), 1, f);
 			fread(&corridor, sizeof(corridor), 1, f);
 			fread(&dungeon->hardness[y][x], sizeof(dungeon->hardness[y][x]), 1, f);
+			fread(&stairs, sizeof(stairs), 1, f);
 
 			if(room) {
 				dungeon->map[y][x] = ter_room;
@@ -221,6 +226,10 @@ int load(dungeon_t *dungeon) {
 				dungeon->map[y][x] = ter_corridor;
 			} else if(y == 0 || y == DUNG_Y - 1 || x == 0 || x == DUNG_X - 1) {
 				dungeon->map[y][x] = ter_immutable;
+			} else if(stairs == 1) {
+				dungeon->map[y][x] = ter_stair_down;
+			} else if(stairs == 2) {
+				dungeon->map[y][x] = ter_stair_up;
 			} else {
 				dungeon->map[y][x] = ter_wall;
 			}
@@ -234,10 +243,37 @@ int load(dungeon_t *dungeon) {
 	// read in rooms
 	int i;
 	for(i = 0; i < dungeon->num_rooms; i++) {
-		fread(&dungeon->rooms[i].x, 1, 1, f);
-		fread(&dungeon->rooms[i].y, 1, 1, f);
-		fread(&dungeon->rooms[i].x_width, 1, 1, f);
-		fread(&dungeon->rooms[i].y_height, 1, 1, f);
+		fread(&dungeon->rooms[i].x, sizeof(dungeon->rooms[i].x), 1, f);
+		fread(&dungeon->rooms[i].y, sizeof(dungeon->rooms[i].y), 1, f);
+		fread(&dungeon->rooms[i].x_width, sizeof(dungeon->rooms[i].x_width), 1, f);
+		fread(&dungeon->rooms[i].y_height, sizeof(dungeon->rooms[i].y_height), 1, f);
+	}
+
+	// read in PC's next turn (game turn)
+	fread(&dungeon->player.next_turn, sizeof(dungeon->player.next_turn), 1, f);
+
+	// read in monster sequence number (num_mons + 1)
+	fread(&i32, sizeof(i32), 1, f);
+
+	// read in number of monsters in the dungeon
+	fread(&i32, sizeof(i32), 1, f);
+	dungeon->num_mons = be32toh(i32);
+
+	// read in NPCs
+	for(i = 0; i < dungeon->num_mons; i++) {
+		fread(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
+		fread(&dungeon->mons[i].x, sizeof(dungeon->mons[i].x), 1, f);
+		fread(&dungeon->mons[i].y, sizeof(dungeon->mons[i].y), 1, f);
+		fread(&dungeon->mons[i].speed, sizeof(dungeon->mons[i].speed), 1, f);
+		fread(&dungeon->mons[i].m->smart, sizeof(dungeon->mons[i].m->smart), 1, f);
+		fread(&dungeon->mons[i].m->telepathic, sizeof(dungeon->mons[i].m->telepathic), 1, f);
+		fread(&dungeon->mons[i].m->last_saw_x, sizeof(dungeon->mons[i].m->last_saw_x), 1, f);
+		fread(&dungeon->mons[i].m->last_saw_y, sizeof(dungeon->mons[i].m->last_saw_y), 1, f);
+		fread(&i32, sizeof(i32), 1, f);
+		fread(&dungeon->mons[i].next_turn, sizeof(dungeon->mons[i].next_turn), 1, f);
+
+		// read in extra 20 bytes
+		fread(&i32, sizeof(i32), 5, f);
 	}
 
 	fclose(f);

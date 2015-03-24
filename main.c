@@ -37,11 +37,11 @@ int main(int argc, char *argv[]) {
 
 
 	if(save_file_exists()) {
-		// if(!load(&dungeon)) {
+		if(!load(&dungeon)) {
 
 			generate_map(&dungeon);
 
-		// }
+		}
 
 	} else {
 
