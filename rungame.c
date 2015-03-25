@@ -159,7 +159,6 @@ int run_game(dungeon_t *dungeon) {
 	heap_t h;
 	heap_init(&h, compare_characters_by_next_turn, NULL);
 	heap_insert(&h, &dungeon->player);
-
 	int i;
 	for(i = 0; i < dungeon->num_mons; i++) {
 		heap_insert(&h, &dungeon->mons[i]);
@@ -212,7 +211,7 @@ int run_game(dungeon_t *dungeon) {
 		}
 
 		update_term(dungeon, dungeon->player.x, dungeon->player.y);
-		
+	
 	}
 	
 	return 0;

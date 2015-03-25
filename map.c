@@ -117,104 +117,6 @@ int generate_rooms(dungeon_t *dungeon, int cur_rooms) {
 
 /*
 *
-* connect_rooms_dij(): connects room r1 to room r2 using Dijkstra's shortest path algorithm
-*
-*/
-
-// path_t *connect_rooms_dij(dungeon_t *dungeon, room_t *r1, room_t *r2) { // this method is horrifically slow when running.  If I have time in the future, try to improve this efficiency
-
-// 	int start_x = r1->x;
-// 	int start_y = r1->y + (rand() % r1->y_height);
-// 	int end_x = r2->x;
-// 	int end_y = r2->y + (rand() % r2->y_height);
-
-// 	dungeon->map[end_y][end_x] = ter_debug;
-
-// 	queue_t *q = malloc(sizeof(q));
-
-// 	// create a path representation of each cell on the map - set each cost to "infinite" unless it's the source node (which has cost 0)
-// 	int x, y;
-// 	for(y = 0; y < DUNG_Y; y++) {
-// 		for(x = 0; x < DUNG_X; x++) {
-// 			path_t *v = malloc(sizeof(v));
-// 			v->x = x;
-// 			v->y = y;
-// 			v->cost = INT_MAX;
-// 			v->prev = NULL;
-// 			if(x == start_x && y == start_y) { // source node
-// 				v->cost = 0;
-// 			}
-// 			add_element(q, v);
-// 		}
-// 	}
-
-// 	// loop through the queue, removing the node with the smallest cost each time
-// 	while(q->num_elements > 0) {
-// 		path_t *u = remove_min(q);
-// 		u->scanned = 1;
-
-// 		if(u->x == end_x && u->y == end_y) {
-// 			return u;
-// 		}
-// 		int x, y;
-// 		x = u->x;
-// 		y = u->y;
-// 		int i, j;
-
-// 		// look at each neighbor of u.  If we haven't already scanned it, calculate its cost. 
-// 		for(j = y - 1; j < y + 2; j++) {
-
-// 			// make sure we don't run off the edge of the map
-// 			for(i = x - 1; i < x + 2; i++) {
-// 				if(i < 0) {
-// 					i = 0;
-// 				}
-// 				if(i > DUNG_X - 1) {
-// 					i = DUNG_X - 1;
-// 				}
-// 				if(j < 0) {
-// 					j = 0;
-// 				}
-// 				if(j > DUNG_Y - 1) {
-// 					j = DUNG_Y - 1;
-// 				}
-
-// 				// skip diagonals
-// 				if(j == y - 1 && i == x - 1) {
-// 					continue;
-// 				}
-// 				if(j == y - 1 && i == x + 1) {
-// 					continue;
-// 				}
-// 				if(j == y + 1 && i == x - 1) {
-// 					continue;
-// 				}
-// 				if(j == y + 1 && i == x + 1) {
-// 					continue;
-// 				}
-
-// 				path_t *v = fetch_at_pos(q, i, j);
-// 				// if we haven't already scanned v, make sure it's an open space before updating the cost
-// 				if(v->scanned == 0) {
-// 					if(dungeon->map[j][i] != ter_immutable) {
-// 						int tmp = u->cost + dungeon->hardness[j][i];
-// 						if(tmp < v->cost) {
-// 							v->cost = tmp;
-// 							v->prev = u;
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	fprintf(stderr, "No Dijkstra's path found!\n");
-// 	exit(1);
-
-// }
-
-/*
-*
 * connect_rooms_sim(): connects room r1 to room r2 by drawing straight lines between them
 *
 */
@@ -398,6 +300,12 @@ int print_map(dungeon_t *dungeon) {
 					break;
 				case ter_debug:
 					tmp_map[y][x] = '*';
+					break;
+				case ter_stair_down:
+					tmp_map[y][x] = '>';
+					break;
+				case ter_stair_up:
+					tmp_map[y][x] = '<';
 					break;
 			}
 			

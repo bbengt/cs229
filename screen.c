@@ -4,13 +4,11 @@
 #include "screen.h"
 
 void init_term() {
-
 	initscr();
 	raw();
 	noecho();
 	curs_set(0);
 	keypad(stdscr, TRUE);
-
 }
 
 int update_term(dungeon_t *dungeon, int x, int y) {

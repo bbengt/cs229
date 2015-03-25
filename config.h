@@ -27,10 +27,10 @@ typedef enum terrain {
 } terrain_t;
 
 typedef struct room {
-	uint32_t x;
-	uint32_t x_width;
-	uint32_t y;
-	uint32_t y_height;
+	uint8_t x;
+	uint8_t x_width;
+	uint8_t y;
+	uint8_t y_height;
 } room_t;
 
 typedef struct mon {
@@ -41,19 +41,19 @@ typedef struct mon {
 } mon_t;
 
 typedef struct player {
-	uint32_t x;
-	uint32_t y;
+	uint8_t x;
+	uint8_t y;
 	uint8_t speed;
 } player_t;
 
 typedef struct character {
-	int x;
-	int y;
-	int speed;
+	uint8_t x;
+	uint8_t y;
+	uint8_t speed;
 	char type;
 	mon_t *m;
 	player_t *p;
-	int next_turn;
+	uint32_t next_turn;
 	uint8_t alive;
 } character_t;
 

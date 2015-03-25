@@ -39,11 +39,11 @@ int save(dungeon_t *dungeon) {
 	fwrite(&version, sizeof(version), 1, f);
 
 	// remaining file size
-	uint32_t remaining_size = 4 + (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36);
+	uint32_t remaining_size = htobe32(4 + (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36));
 	fwrite(&remaining_size, sizeof(remaining_size), 1, f);
 
 	// user block offset
-	uint32_t user_block_offset = (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36);
+	uint32_t user_block_offset = htobe32((5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36));
 	fwrite(&user_block_offset, sizeof(user_block_offset), 1, f);
 
 	// write map data
@@ -62,6 +62,8 @@ int save(dungeon_t *dungeon) {
 					break;
 				case ter_room:
 				case ter_corridor:
+				case ter_stair_up:
+				case ter_stair_down:
 					fwrite(&non_zero, sizeof(non_zero), 1, f);
 					break;
 				case ter_debug:
@@ -80,7 +82,9 @@ int save(dungeon_t *dungeon) {
 					fwrite(&non_zero, sizeof(non_zero), 1, f);
 					break;
 				case ter_debug:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
+				case ter_stair_up:
+				case ter_stair_down:
+					fwrite(&zero, sizeof(zero), 1, f);
 					break;
 			}
 
@@ -95,7 +99,9 @@ int save(dungeon_t *dungeon) {
 					fwrite(&non_zero, sizeof(non_zero), 1, f);
 					break;
 				case ter_debug:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
+				case ter_stair_up:
+				case ter_stair_down:
+					fwrite(&zero, sizeof(zero), 1, f);
 					break;
 			}
 
@@ -108,6 +114,13 @@ int save(dungeon_t *dungeon) {
 					break;
 				case ter_stair_down:
 					fwrite(&non_zero, sizeof(non_zero), 1, f);
+					break;
+				case ter_debug:
+				case ter_corridor:
+				case ter_room:
+				case ter_immutable:
+				case ter_wall:
+					fwrite(&zero, sizeof(zero), 1, f);
 					break;
 			}
 		}
@@ -131,10 +144,10 @@ int save(dungeon_t *dungeon) {
 	fwrite(&play_x, sizeof(play_x), 1, f);
 	fwrite(&play_y, sizeof(play_y), 1, f);
 
-	uint32_t game_turn = dungeon->player.next_turn;
+	uint32_t game_turn = htobe32(dungeon->player.next_turn);
 	fwrite(&game_turn, sizeof(game_turn), 1, f);
 
-	uint32_t sequence_num = dungeon->num_mons + 1;
+	uint32_t sequence_num = htobe32(dungeon->num_mons + 1);
 	fwrite(&sequence_num, sizeof(sequence_num), 1, f);
 
 	for(i = 0; i < dungeon->num_mons; i++) {
@@ -147,8 +160,8 @@ int save(dungeon_t *dungeon) {
 		uint8_t last_saw_x = dungeon->mons[i].m->last_saw_x;
 		uint8_t last_saw_y = dungeon->mons[i].m->last_saw_y;
 		uint8_t mon_seq_num = i;
-		uint32_t mon_next_turn = dungeon->mons[i].next_turn;
-		uint32_t empty = 0;
+		uint32_t mon_next_turn = htobe32(dungeon->mons[i].next_turn);
+		uint32_t empty = htobe32(0);
 
 		fwrite(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
 		fwrite(&mon_x, sizeof(mon_x), 1, f);
@@ -162,8 +175,11 @@ int save(dungeon_t *dungeon) {
 		fwrite(&mon_next_turn, sizeof(mon_next_turn), 1, f);
 
 		// write 20 bytes of zeros
-		fwrite(&empty, sizeof(empty), 5, f);
-
+		fwrite(&empty, sizeof(empty), 1, f);
+		fwrite(&empty, sizeof(empty), 1, f);
+		fwrite(&empty, sizeof(empty), 1, f);
+		fwrite(&empty, sizeof(empty), 1, f);
+		fwrite(&empty, sizeof(empty), 1, f);
 	}	
 
 	fclose(f);
@@ -257,15 +273,20 @@ int load(dungeon_t *dungeon) {
 	// set PC speed
 	dungeon->player.speed = 20;
 
+	// create player struct
+	player_t p = { dungeon->player.x, dungeon->player.y, dungeon->player.speed };
+	dungeon->player.p = &p;
+
 	// read in PC's next turn (game turn)
-	fread(&dungeon->player.next_turn, sizeof(dungeon->player.next_turn), 1, f);
+	fread(&i32, sizeof(i32), 1, f);
+	dungeon->player.next_turn = be32toh(i32);
 
 	// read in monster sequence number (num_mons + 1)
 	fread(&i32, sizeof(i32), 1, f);
 
 	// read in number of monsters in the dungeon
-	fread(&i32, sizeof(i32), 1, f);
-	dungeon->num_mons = be32toh(i32);
+	fread(&i16, sizeof(i16), 1, f);
+	dungeon->num_mons = be16toh(i16);
 
 	// read in NPCs
 	for(i = 0; i < dungeon->num_mons; i++) {

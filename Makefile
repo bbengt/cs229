@@ -1,25 +1,41 @@
 assignment := $(shell git symbolic-ref --short HEAD | cut -c3-6)
-OBJS = map.o binary_search.o mon.o player.o rungame.o screen.o heap.o main.o io.o
+CC = gcc
+ECHO = echo
+RM = rm -f
 
-.PHONY: clean objs dungeon cleanup
+CFLAGS = -Wall -Werror -ggdb
+LDFLAGS = -lncurses -lm
+
+BIN = dungeon
+OBJS = heap.o io.o main.o map.o mon.o player.o rungame.o screen.o
+
+# all: $(BIN) etags
+all: $(BIN)
+
+$(BIN): $(OBJS)
+	@$(ECHO) Linking $@
+	@$(CC) $^ -o $@ $(LDFLAGS)
+
+-include $(OBJS:.o=.d)
 
 %.o: %.c
-	echo Compiling $<
-	gcc -MMD -MF $?.d -c $<
+	@$(ECHO) Compiling $<
+	@$(CC) $(CFLAGS) -MMD -MF $*.d -c $<
 
-dungeon: $(OBJS) 
-	echo Linking $@
-	gcc -Wall -Werror -ggdb $^ -o $@ -lm -lncurses
+.PHONY: clean clobber etags
 
 clean:
-	rm -f dungeon
-	rm -f out.txt
-	rm -f *.d
-	rm -f *.o
+	@$(ECHO) Removing all generated files
+	@$(RM) *.o $(BIN) *.d TAGS core vgcore.*
 
-cleanup:
-	rm -f *.d
-	rm -f *.o
+clobber: clean
+	@$(ECHO) Removing backup files
+	@$(RM) *~ \#*
+
+# etags:
+# 	@$(ECHO) Updating TAGS
+# 	@etags *.[ch]
+
 
 tar:
 	mkdir bengtson_brian.assignment-$(assignment)
