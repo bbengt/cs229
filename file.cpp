@@ -41,7 +41,9 @@ int parse_monster_defs(dungeon_t *d) {
 	string line;
 	int count = 0;
 	int reading_monster = 0;
+	int in_desc = 0;
 	character_t m;
+	std::string last("NOTHING");
 	while(getline(in, line)) {
 
 		// make sure first line is correct
@@ -49,15 +51,82 @@ int parse_monster_defs(dungeon_t *d) {
 			return 1;
 		}
 
-		if(line.compare("BEGIN MONSTER") == 0) {
+		// create strings to compare lines to
+		std::string begin("BEGIN MONSTER");
+		std::string name_search("NAME");
+		std::string symb("SYMB");
+		std::string color_search("COLOR");
+		std::string desc("DESC");
+		std::string period(".");
+		std::string speed_search("SPEED");
+		std::string dam("DAM");
+		std::string hp("HP");
+		std::string abil("ABIL");
+		std::string end("END");
+
+		// BEGIN MONSTER
+		if(line.compare(0, begin.length(), begin) == 0) {
 			reading_monster = 1;
+			last = begin;
 		}
 
-		if(line.)
 
-		if(line.compare("END") == 0) {
-			reading_monster = 0;
+		if(reading_monster && line.compare(0, name_search.length(), name_search) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(begin) != 0) {
+				return 1;
+			}
+
+			// TODO
+			last = name_search;
 		}
+
+		if(reading_monster && line.compare(0, symb.length(), symb) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(name_search) != 0) {
+				return 1;
+			}
+
+			// TODO
+
+			last = symb;
+		}
+
+		if(reading_monster && line.compare(0, color_search.length(), color_search) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(symb) != 0) {
+				return 1;
+			}
+
+			// TODO
+
+			last = color_search; 
+		}
+
+		if(reading_monster && line.compare(desc) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(color_search) != 0) {
+				return 1;
+			}
+
+			in_desc = 1;
+			last = desc;
+		}
+
+		if(reading_monster && in_desc && last.compare(desc) == 0) {
+			if(line.compare(period) == 0) {
+				last = period;
+			} else {
+
+				// TODO
+			}
+
+		}
+
 	}
 	
 	return 0;
