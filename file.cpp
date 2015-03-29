@@ -35,20 +35,20 @@ int parse_monster_defs(dungeon_t *d) {
 	ifstream in;
 	in.open(filename);
 	if(!in.good()) {
-		return 1;
+		reading_monster = 0;
 	}
 
 	string line;
 	int count = 0;
 	int reading_monster = 0;
 	int in_desc = 0;
-	// character_t m;
+	character_t m;
 	std::string last("NOTHING");
 	while(getline(in, line)) {
 
 		// make sure first line is correct
 		if(count == 0 && line.compare("RLG229 MONSTER DESCRIPTION 1") != 0) {
-			return 1;
+			exit(1);
 		}
 
 		// create strings to compare lines to
@@ -75,10 +75,19 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure we're reading things in the correct order
 			if(last.compare(begin) != 0) {
-				return 1;
+				reading_monster = 0;
 			}
 
-			// TODO
+			char *tokens[255];
+			int n = 0;
+			tokens[0] = strtok(line, " ");
+			while(tokens[n] != NULL) {
+				tokens[n] = strtok(NULL, " ");
+				n++;
+			}
+
+			// copy each character of each element of tokens[1] through tokens[n] into m.name, inserting space after each token
+
 			last = name_search;
 		}
 
@@ -86,10 +95,15 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure we're reading things in the correct order
 			if(last.compare(name_search) != 0) {
-				return 1;
+				reading_monster = 0;
 			}
 
-			// TODO
+			// split line at a space and discard the first half = we know it's SYMB
+			strtok(line, " ");
+
+			// the second half of line should be a single character containing the monster's symbol.  If there's more, we'll just grab the first character
+			char *token = strtok(NULL, " ");
+			m.symbol = token[0];
 
 			last = symb;
 		}
@@ -98,7 +112,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure we're reading things in the correct order
 			if(last.compare(symb) != 0) {
-				return 1;
+				reading_monster = 0;
 			}
 
 			// TODO
@@ -110,7 +124,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure we're reading things in the correct order
 			if(last.compare(color_search) != 0) {
-				return 1;
+				reading_monster = 0;
 			}
 
 			in_desc = 1;
@@ -124,6 +138,68 @@ int parse_monster_defs(dungeon_t *d) {
 
 				// TODO
 			}
+
+		}
+
+		if(reading_monster && line.compare(0, speed_search.length(), speed_search) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(period) != 0) {
+				reading_monster = 0;
+			}
+
+			// TODO
+
+			last = speed_search; 
+		}
+
+		if(reading_monster && line.compare(0, dam.length(), dam) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(speed_search) != 0) {
+				reading_monster = 0;
+			}
+
+			// TODO
+
+			last = dam;
+		}
+
+		if(reading_monster && line.compare(0, hp.length(), hp) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(dam) != 0) {
+				reading_monster = 0;
+			}
+
+			// TODO
+
+			last = hp;
+		}
+
+		if(reading_monster && line.compare(0, abil.length(), abil) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(hp) != 0) {
+				reading_monster = 0;
+			}
+
+			// TODO
+
+			last = abil;
+		}
+
+		if(reading_monster && line.compare(end) == 0) {
+
+			// make sure we're reading things in the correct order
+			if(last.compare(abil) != 0) {
+				reading_monster = 0;
+			}
+
+			// TODO
+
+			last = end;
+			reading_monster = 0;
 
 		}
 

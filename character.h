@@ -10,6 +10,7 @@ typedef struct npc npc_t;
 typedef struct pc pc_t;
 
 typedef struct character {
+  char name[255];
   char symbol;
   pair_t position;
   uint32_t speed;
