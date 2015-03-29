@@ -1,14 +1,26 @@
-Date:   Sat Feb 28
+Date:   Tue Mar 24
 
-    Added staircase terrain type, got ncurses interface working
+    Save and load work, but game crashes if saving with any monsters and after one game turn after loading a previously saved game.  Unable to figure this problem out.
+
+Date:   Sun Mar 22
+
+    Worked on load().  Ran into issues with reading in junk data because I had incorrect sizes.  Fixed and load read data in properly.
+
+Date:   Sat Mar 21
+
+    Started working on save() and load() - moved into io.c.  Also completed first draft of code.
+
+Date:   Tue Mar 3
+
+    Further attempts to fix look mode issue, but no luck
 
 Date:   Mon Mar 2
 
     Tried implementing Look Mode, but it doesn't change the view
 
-Date:   Tue Mar 3
+Date:   Sat Feb 28
 
-    Further attempts to fix look mode issue, but no luck
+    Added staircase terrain type, got ncurses interface working
 
 Date:   Mon Feb 23
 
