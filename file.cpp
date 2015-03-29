@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -15,21 +19,17 @@ int parse_monster_defs(dungeon_t *d) {
 
 	char *home;
   	char *filename;
-  	FILE *f;
   	size_t len;
 
-	if (!(home = getenv("HOME"))) {
-		fprintf(stderr, "\"HOME\" is undefined.  Using working directory.\n");
-	    home = ".";
-	}
+	home = getenv("HOME");
 
 	len = (strlen(home) + strlen(SAVE_DIR) + strlen("monster_desc.txt") +
 		1 /* The NULL terminator */                                 +
 	    2 /* The slashes */);
 
-	filename = malloc(len * sizeof (*filename));
+	filename = (char*) malloc(len * sizeof (*filename));
 	sprintf(filename, "%s/%s/", home, SAVE_DIR);
-	makedirectory(filename);
+	mkdir(filename, 0755);
 	strcat(filename, "monster_desc.txt");
 
 	ifstream in;
@@ -42,7 +42,7 @@ int parse_monster_defs(dungeon_t *d) {
 	int count = 0;
 	int reading_monster = 0;
 	int in_desc = 0;
-	character_t m;
+	// character_t m;
 	std::string last("NOTHING");
 	while(getline(in, line)) {
 
