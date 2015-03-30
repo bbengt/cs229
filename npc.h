@@ -7,8 +7,8 @@
 
 # define NPC_SMART         0x00000001
 # define NPC_TELEPATH      0x00000002
-# define NPC_BIT02         0x00000004
-# define NPC_BIT03         0x00000008
+# define NPC_TUNNEL        0x00000004
+# define NPC_PASS          0x00000008
 # define NPC_BIT04         0x00000010
 # define NPC_BIT05         0x00000020
 # define NPC_BIT06         0x00000040

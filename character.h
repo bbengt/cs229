@@ -12,6 +12,10 @@ typedef struct pc pc_t;
 typedef struct character {
   char name[255];
   char symbol;
+  char color[255];
+  char *desc;
+  char *damage;
+  uint32_t hp;
   pair_t position;
   uint32_t speed;
   uint32_t next_turn;
