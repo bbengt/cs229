@@ -93,12 +93,12 @@ int main(int argc, char *argv[])
   srand(seed);
 
   // io_init_terminal();
-  // init_dungeon(&d);
+  init_dungeon(&d);
 
   // if (read_dungeon(&d)) {
-  //   gen_dungeon(&d);
-  //   config_pc(&d);
-  //   gen_monsters(&d, nummon, 0);
+    gen_dungeon(&d);
+    config_pc(&d);
+    // gen_monsters(&d, nummon, 0);
   // }
 
   // io_display(&d);
@@ -133,6 +133,15 @@ int main(int argc, char *argv[])
   // delete_dungeon(&d);
 
   parse_monster_defs(&d);
+
+  int x, y;
+  for(y = 0; y < DUNGEON_Y; y++) {
+    for(x = 0; x < DUNGEON_X; x++) {
+      if(d.character[y][x]) {
+        printf("name: %s\n", d.character[y][x]->name);
+      }
+    }
+  }
 
   return 0;
 }

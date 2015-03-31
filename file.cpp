@@ -36,53 +36,63 @@ int parse_monster_defs(dungeon_t *d) {
 	ifstream in;
 	in.open(filename);
 	if(!in.good()) {
+		printf("unable to find input file\n");
 		exit(1);
 	}
 
 	string line;
-	int count = 0;
 	int reading_monster = 0;
 	int in_desc = 0;
 	character_t *m;
 	std::string last("NOTHING");
+	std::string nothing("NOTHING");
+	std::string id_str("RLG229 MONSTER DESCRIPTION 1");
+
+	// create strings to compare lines to
+	std::string begin("BEGIN MONSTER");
+	std::string name_search("NAME");
+	std::string symb("SYMB");
+	std::string color_search("COLOR");
+	std::string desc("DESC");
+	std::string period(".");
+	std::string speed_search("SPEED");
+	std::string dam("DAM");
+	std::string hp("HP");
+	std::string abil("ABIL");
+	std::string end("END");
 	int desc_arr_size = 255;
 	int desc_size = 0;
 
+	getline(in, line);
+	if(line.compare(id_str) != 0) {
+		printf("invalid input file\n");
+		exit(1);
+	}
+
+	printf("right before loop\n");
 	while(getline(in, line)) {
 
 		const char *line_c = line.c_str();
 		char *line_c_mut = const_cast<char*>(line_c);
 
-
-		// make sure first line is correct
-		if(count == 0 && line.compare("RLG229 MONSTER DESCRIPTION 1") != 0) {
-			exit(1);
-		}
-
-		// create strings to compare lines to
-		std::string begin("BEGIN MONSTER");
-		std::string name_search("NAME");
-		std::string symb("SYMB");
-		std::string color_search("COLOR");
-		std::string desc("DESC");
-		std::string period(".");
-		std::string speed_search("SPEED");
-		std::string dam("DAM");
-		std::string hp("HP");
-		std::string abil("ABIL");
-		std::string end("END");
-
 		// BEGIN MONSTER
 		if(line.compare(0, begin.length(), begin) == 0) {
+			printf("in begin\n");
 			m = (character_t *) malloc(sizeof(m));
+			printf("malloc'd m\n");
 			m->desc = (char *) malloc(sizeof(char) * desc_arr_size);
+			printf("malloc'd m->desc\n");
 			generate_coords(d, m);
+			printf("generated coords\n");
 			reading_monster = 1;
 			last = begin;
+			continue;
+			printf("done with begin\n");
 		}
 
 
 		if(reading_monster && line.compare(0, name_search.length(), name_search) == 0) {
+			printf("in name\n");
 
 			// make sure we're reading things in the correct order
 			if(last.compare(begin) != 0) {
@@ -97,20 +107,27 @@ int parse_monster_defs(dungeon_t *d) {
 				n++;
 			}
 
-			std::string name;
+			printf("read tokens\n");
+
+			std::string name(tokens[0]);
 
 			// copy each character of each element of tokens[1] through tokens[n] into m.name, inserting space after each token
-			int i;
-			for(i = 0; i < n; i++) {
-				std::string to_add(tokens[i]);
-				name += to_add;
-			}
+			// int i;
+			// for(i = 1; i <= n; i++) {
+			// 	std::string to_add(tokens[i]);
+			// 	name += to_add;
+			// }
+			printf("copied into name\n");
 			m->name = const_cast<char*>(name.c_str());
+			printf("name: %s\n", m->name);
 
 			last = name_search;
+			continue;
 		}
 
 		if(reading_monster && line.compare(0, symb.length(), symb) == 0) {
+
+			printf("in symb\n");
 
 			// make sure we're reading things in the correct order
 			if(last.compare(name_search) != 0) {
@@ -122,9 +139,12 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// the second half of line should be a single character containing the monster's symbol.  If there's more, we'll just grab the first character
 			char *token = strtok(NULL, " ");
+			printf("got token\n");
 			m->symbol = token[0];
+			printf("set m->symbol\n");
 
 			last = symb;
+			continue;
 		}
 
 		if(reading_monster && line.compare(0, color_search.length(), color_search) == 0) {
@@ -150,6 +170,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			last = color_search; 
+			continue;
 		}
 
 		if(reading_monster && line.compare(desc) == 0) {
@@ -161,11 +182,13 @@ int parse_monster_defs(dungeon_t *d) {
 
 			in_desc = 1;
 			last = desc;
+			continue;
 		}
 
 		if(reading_monster && in_desc && last.compare(desc) == 0) {
 			if(line.compare(period) == 0) {
 				last = period;
+				continue;
 			} else {
 
 				// make sure we have enough space to hold a full line
@@ -206,7 +229,9 @@ int parse_monster_defs(dungeon_t *d) {
 			m->speed = speed;
 
 			last = speed_search; 
+			continue;
 		}
+
 
 		if(reading_monster && line.compare(0, dam.length(), dam) == 0) {
 
@@ -224,6 +249,7 @@ int parse_monster_defs(dungeon_t *d) {
 			m->damage = token;
 
 			last = dam;
+			continue;
 		}
 
 		if(reading_monster && line.compare(0, hp.length(), hp) == 0) {
@@ -247,6 +273,7 @@ int parse_monster_defs(dungeon_t *d) {
 			m->hp = health;
 
 			last = hp;
+			continue;
 		}
 
 		if(reading_monster && line.compare(0, abil.length(), abil) == 0) {
@@ -291,6 +318,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			last = abil;
+			continue;
 		}
 
 		if(reading_monster && line.compare(end) == 0) {

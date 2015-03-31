@@ -53,19 +53,18 @@ void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn)
 
 void generate_coords(dungeon_t *d, character_t *m) {
 
-  uint32_t x, y;
-  x = y = 0;
-  while(1) {
-    if(d->map[y][x] == ter_floor) {
-      break;
-    }
-
-    y = rand() % DUNGEON_Y;
-    x = rand() % DUNGEON_X;
-  }
-
-  m->position[dim_y] = y;
-  m->position[dim_x] = x;
+  pair_t p;
+  int room = rand_range(1, d->num_rooms - 1);
+    do {
+      p[dim_y] = rand_range(d->rooms[room].position[dim_y],
+                            (d->rooms[room].position[dim_y] +
+                             d->rooms[room].size[dim_y] - 1));
+      p[dim_x] = rand_range(d->rooms[room].position[dim_x],
+                            (d->rooms[room].position[dim_x] +
+                             d->rooms[room].size[dim_x] - 1));
+    } while (d->character[p[dim_y]][p[dim_x]]);
+    m->position[dim_y] = p[dim_y];
+    m->position[dim_x] = p[dim_x];
 }
 
 void npc_next_pos_rand(dungeon_t *d, character_t *c, pair_t next)
