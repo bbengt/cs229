@@ -10,7 +10,7 @@ typedef struct npc npc_t;
 typedef struct pc pc_t;
 
 typedef struct character {
-  char name[255];
+  char *name;
   char symbol;
   char *color;
   char *desc;

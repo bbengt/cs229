@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef NPC_H
 # define NPC_H
 
@@ -57,4 +61,8 @@ void npc_next_pos(dungeon_t *d, character_t *c, pair_t next);
 uint32_t dungeon_has_npcs(dungeon_t *d);
 void generate_coords(dungeon_t *d, character_t *m);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

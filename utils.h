@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef UTILS_H
 # define UTILS_H
 
@@ -8,4 +12,8 @@
 int makedirectory(char *dir);
 int roll_dice(char *dice);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

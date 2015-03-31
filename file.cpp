@@ -48,14 +48,11 @@ int parse_monster_defs(dungeon_t *d) {
 	int desc_arr_size = 255;
 	int desc_size = 0;
 
-	m->desc = (char *) malloc(sizeof(char) * desc_arr_size);
-	generate_coords(d, m);
-
 	while(getline(in, line)) {
 
 		const char *line_c = line.c_str();
-		char *line_c_mut = (char *) malloc(sizeof(char) * line.length());
-		strcpy(line_c, line_c_mut);
+		char *line_c_mut = const_cast<char*>(line_c);
+
 
 		// make sure first line is correct
 		if(count == 0 && line.compare("RLG229 MONSTER DESCRIPTION 1") != 0) {
@@ -78,6 +75,8 @@ int parse_monster_defs(dungeon_t *d) {
 		// BEGIN MONSTER
 		if(line.compare(0, begin.length(), begin) == 0) {
 			m = (character_t *) malloc(sizeof(m));
+			m->desc = (char *) malloc(sizeof(char) * desc_arr_size);
+			generate_coords(d, m);
 			reading_monster = 1;
 			last = begin;
 		}
@@ -98,11 +97,15 @@ int parse_monster_defs(dungeon_t *d) {
 				n++;
 			}
 
+			std::string name;
+
 			// copy each character of each element of tokens[1] through tokens[n] into m.name, inserting space after each token
 			int i;
 			for(i = 0; i < n; i++) {
-				m->name += tokens[i] + " ";
+				std::string to_add(tokens[i]);
+				name += to_add;
 			}
+			m->name = const_cast<char*>(name.c_str());
 
 			last = name_search;
 		}
@@ -140,7 +143,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure color is a valid color
 			if(token.compare("RED") == 0 || token.compare("GREEN") == 0 || token.compare("BLUE") == 0 || token.compare("CYAN") == 0 || token.compare("YELLOW") == 0 || token.compare("MAGENTA") == 0 || token.compare("WHITE") == 0 || token.compare("BLACK") == 0) {
-				m->color = token;
+				m->color = const_cast<char*>(token.c_str());
 			} else {
 				cout << "Invalid color: " << token;
 				return 1;
@@ -169,15 +172,14 @@ int parse_monster_defs(dungeon_t *d) {
 				if(desc_size + 77 >= desc_arr_size) {
 
 					char *tmp = (char *) malloc(2 * sizeof(tmp) * desc_size);
-					size_t length = m->desc.copy(tmp, desc_size, 0);
-					tmp[length] = '\0';
+					strcpy(tmp, m->desc);
 					m->desc = tmp;
 
 				}
 
 				desc_size += line.length();
 				std::string tmp = m->desc + line;
-				m->desc = t.c_str();
+				m->desc = const_cast<char*>(tmp.c_str());
 
 			}
 
@@ -262,21 +264,29 @@ int parse_monster_defs(dungeon_t *d) {
 				n++;
 			}
 
+			std::string smart_str("SMART");
+			std::string tele_str("TELE");
+			std::string tunnel_str("TUNNEL");
+			std::string pass_str("PASS");
 			int i;
 			for(i = 1; i < n; i++) {
-				switch(tokens[i]) {
-					case "SMART":
-						// m->characteristics |= NPC_SMART;
-						break;
-					case "TELE":
-						// make m telepathic
-						break;
-					case "TUNNEL":
-						// make m tunnel through rock
-						break;
-					case "PASS":
-						// make m ethereal
-						break;
+
+				std::string cpp_str(tokens[i]);
+				if(cpp_str.compare(pass_str) == 0) {
+					// make m smart
+					continue;
+				}
+				if(cpp_str.compare(tele_str) == 0) {
+					//make m telepathic
+					continue;
+				}
+				if(cpp_str.compare(tunnel_str) == 0) {
+					// make m tunnel through rock
+					continue;
+				}
+				if(cpp_str.compare(smart_str) == 0) {
+					// make m ethereal
+					continue;
 				}
 			}
 

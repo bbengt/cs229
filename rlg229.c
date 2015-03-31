@@ -12,6 +12,7 @@
 #include "move.h"
 #include "io.h"
 #include "file.h"
+
 static void usage(char *name)
 {
   fprintf(stderr,
