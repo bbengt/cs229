@@ -64,11 +64,8 @@ void generate_coords(dungeon_t *d, character_t *m) {
     x = rand() % DUNGEON_X;
   }
 
-  pair_t p;
-  p[dim_y] = y;
-  p[dim_x] = x;
-
-  m->position = p;
+  m->position[dim_y] = y;
+  m->position[dim_x] = x;
 }
 
 void npc_next_pos_rand(dungeon_t *d, character_t *c, pair_t next)
