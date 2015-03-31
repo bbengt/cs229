@@ -51,6 +51,26 @@ void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn)
   }
 }
 
+void generate_coords(dungeon_t *d, character_t *m) {
+
+  uint32_t x, y;
+  x = y = 0;
+  while(1) {
+    if(d->map[y][x] == ter_floor) {
+      break;
+    }
+
+    y = rand() % DUNGEON_Y;
+    x = rand() % DUNGEON_X;
+  }
+
+  pair_t p;
+  p[dim_y] = y;
+  p[dim_x] = x;
+
+  m->pos = p;
+}
+
 void npc_next_pos_rand(dungeon_t *d, character_t *c, pair_t next)
 {
   pair_t n;

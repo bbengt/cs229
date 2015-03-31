@@ -42,12 +42,13 @@ int parse_monster_defs(dungeon_t *d) {
 	int count = 0;
 	int reading_monster = 0;
 	int in_desc = 0;
-	character_t m;
+	character_t *m;
 	std::string last("NOTHING");
 	int desc_arr_size = 255;
 	int desc_size = 0;
 
-	m.desc = malloc(sizeof(char) * desc_arr_size);
+	m->desc = (char *) malloc(sizeof(char) * desc_arr_size);
+	generate_coords(d, m);
 
 	while(getline(in, line)) {
 
@@ -71,6 +72,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 		// BEGIN MONSTER
 		if(line.compare(0, begin.length(), begin) == 0) {
+			m = (character_t *) malloc(sizeof(m));
 			reading_monster = 1;
 			last = begin;
 		}
@@ -92,6 +94,10 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// copy each character of each element of tokens[1] through tokens[n] into m.name, inserting space after each token
+			int i;
+			for(i = 0; i < n; i++) {
+				m->name += tokens[i] + " ";
+			}
 
 			last = name_search;
 		}
@@ -108,7 +114,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// the second half of line should be a single character containing the monster's symbol.  If there's more, we'll just grab the first character
 			char *token = strtok(NULL, " ");
-			m.symbol = token[0];
+			m->symbol = token[0];
 
 			last = symb;
 		}
@@ -128,7 +134,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// make sure color is a valid color
 			if(token.compare("RED") == 0 || token.compare("GREEN") == 0 || token.compare("BLUE") == 0 || token.compare("CYAN") == 0 || token.compare("YELLOW") == 0 || token.compare("MAGENTA") == 0 || token.compare("WHITE") == 0 || token.compare("BLACK") == 0) {
-				m.color = token;
+				m->color = token;
 			} else {
 				cout << "Invalid color: " << token;
 				return 1;
@@ -156,14 +162,15 @@ int parse_monster_defs(dungeon_t *d) {
 				// make sure we have enough space to hold a full line
 				if(desc_size + 77 >= desc_arr_size) {
 
-					// malloc more space into new array
-					// copy contents of current array into new array
-					// change array references 
+					char *tmp = malloc(2 * sizeof(tmp) * desc_size);
+					size_t length = m->desc.copy(tmp, desc_size, 0);
+					tmp[length] = '\0';
+					m->desc = tmp;
 
 				}
 
-				// count how long line is, add it to desc_size
-				// concatenate line to m.desc
+				desc_size += line.length();
+				m->desc = m->desc + line;
 
 			}
 
@@ -187,7 +194,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// check for a bad return value
 
-			m.speed = speed;
+			m->speed = speed;
 
 			last = speed_search; 
 		}
@@ -205,7 +212,7 @@ int parse_monster_defs(dungeon_t *d) {
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
 
-			m.damage = token;
+			m->damage = token;
 
 			last = dam;
 		}
@@ -228,7 +235,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			// check for a bad return value
 
-			m.hp = health;
+			m->hp = health;
 
 			last = hp;
 		}
@@ -252,7 +259,7 @@ int parse_monster_defs(dungeon_t *d) {
 			for(i = 1; i < n; i++) {
 				switch(tokens[i]) {
 					case "SMART":
-						m.characteristics |= NPC_SMART;
+						m->characteristics |= NPC_SMART;
 						break;
 					case "TELE":
 						// make m telepathic
@@ -276,8 +283,7 @@ int parse_monster_defs(dungeon_t *d) {
 				reading_monster = 0;
 			}
 
-			// add monster to monster array
-			// reset m
+			dungeon->character[m->pos[dim_y]][m->pos[dim_x]] = m;
 
 			last = end;
 			reading_monster = 0;
