@@ -283,7 +283,7 @@ int parse_monster_defs(dungeon_t *d) {
 				reading_monster = 0;
 			}
 
-			dungeon->character[m->pos[dim_y]][m->pos[dim_x]] = m;
+			dungeon->character[m->position[dim_y]][m->position[dim_x]] = m;
 
 			last = end;
 			reading_monster = 0;
