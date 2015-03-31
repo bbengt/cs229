@@ -53,6 +53,10 @@ int parse_monster_defs(dungeon_t *d) {
 
 	while(getline(in, line)) {
 
+		const char *line_c = line.c_str();
+		char *line_c_mut = malloc(sizeof(char) * line.length());
+		strcpy(line_c, line_c_mut);
+
 		// make sure first line is correct
 		if(count == 0 && line.compare("RLG229 MONSTER DESCRIPTION 1") != 0) {
 			exit(1);
@@ -88,7 +92,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			char *tokens[255];
 			int n = 0;
-			tokens[0] = strtok(line.c_str(), " ");
+			tokens[0] = strtok(line_c_mut, " ");
 			while(tokens[n] != NULL) {
 				tokens[n] = strtok(NULL, " ");
 				n++;
@@ -111,7 +115,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's SYMB
-			strtok(line.c_str(), " ");
+			strtok(line_c_mut, " ");
 
 			// the second half of line should be a single character containing the monster's symbol.  If there's more, we'll just grab the first character
 			char *token = strtok(NULL, " ");
@@ -128,7 +132,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's COLOR
-			strtok(line.c_str(), " ");
+			strtok(line_c_mut, " ");
 
 			// the second half of line will be the color
 			char *token_c = strtok(NULL, " ");
@@ -187,7 +191,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's SPEED
-			strtok(line.c_str(), " ");
+			strtok(line_c_mut, " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -210,7 +214,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's DAM
-			strtok(line.c_str(), " ");
+			strtok(line_c_mut, " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -228,7 +232,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's HP
-			strtok(line.c_str(), " ");
+			strtok(line_c_mut, " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -252,7 +256,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			char *tokens[255];
 			int n = 0;
-			tokens[0] = strtok(line.c_str(), " ");
+			tokens[0] = strtok(line_c_mut, " ");
 			while(tokens[n] != NULL) {
 				tokens[n] = strtok(NULL, " ");
 				n++;
