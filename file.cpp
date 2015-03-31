@@ -54,7 +54,7 @@ int parse_monster_defs(dungeon_t *d) {
 	while(getline(in, line)) {
 
 		const char *line_c = line.c_str();
-		char *line_c_mut = malloc(sizeof(char) * line.length());
+		char *line_c_mut = (char *) malloc(sizeof(char) * line.length());
 		strcpy(line_c, line_c_mut);
 
 		// make sure first line is correct
