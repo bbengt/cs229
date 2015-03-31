@@ -44,9 +44,9 @@ int makedirectory(char *dir)
 int roll_dice(char *dice) {
 
   // parse dice representation into numbers
-  int base = strtok(dice, "+");
-  int dice = strtok(0, "d");
-  int sides = strtok(0, '\0');
+  int base = atoi(strtok(dice, "+"));
+  int num_dice = atoi(strtok(0, "d"));
+  int sides = atoi(strtok(0, " "));
 
   int i, total;
   for(i = 0, total = 0; i <= dice; i++) {
