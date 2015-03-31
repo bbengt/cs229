@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "utils.h"
 
@@ -49,7 +50,7 @@ int roll_dice(char *dice) {
   int sides = atoi(strtok(0, " "));
 
   int i, total;
-  for(i = 0, total = 0; i <= dice; i++) {
+  for(i = 0, total = 0; i <= num_dice; i++) {
     int roll = 1 + rand() % sides;
     total += roll;
   }
