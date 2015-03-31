@@ -14,6 +14,7 @@ using std::string;
 
 #include "file.h"
 #include "utils.h"
+#include "npc.h"
 
 int parse_monster_defs(dungeon_t *d) {
 
@@ -35,7 +36,7 @@ int parse_monster_defs(dungeon_t *d) {
 	ifstream in;
 	in.open(filename);
 	if(!in.good()) {
-		reading_monster = 0;
+		exit(1);
 	}
 
 	string line;
@@ -87,7 +88,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			char *tokens[255];
 			int n = 0;
-			tokens[0] = strtok(line, " ");
+			tokens[0] = strtok(line.c_str(), " ");
 			while(tokens[n] != NULL) {
 				tokens[n] = strtok(NULL, " ");
 				n++;
@@ -110,7 +111,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's SYMB
-			strtok(line, " ");
+			strtok(line.c_str(), " ");
 
 			// the second half of line should be a single character containing the monster's symbol.  If there's more, we'll just grab the first character
 			char *token = strtok(NULL, " ");
@@ -127,10 +128,11 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's COLOR
-			strtok(line, " ");
+			strtok(line.c_str(), " ");
 
 			// the second half of line will be the color
-			char *token = strtok(NULL, " ");
+			char *token_c = strtok(NULL, " ");
+			std::string token(token_c);
 
 			// make sure color is a valid color
 			if(token.compare("RED") == 0 || token.compare("GREEN") == 0 || token.compare("BLUE") == 0 || token.compare("CYAN") == 0 || token.compare("YELLOW") == 0 || token.compare("MAGENTA") == 0 || token.compare("WHITE") == 0 || token.compare("BLACK") == 0) {
@@ -162,7 +164,7 @@ int parse_monster_defs(dungeon_t *d) {
 				// make sure we have enough space to hold a full line
 				if(desc_size + 77 >= desc_arr_size) {
 
-					char *tmp = malloc(2 * sizeof(tmp) * desc_size);
+					char *tmp = (char *) malloc(2 * sizeof(tmp) * desc_size);
 					size_t length = m->desc.copy(tmp, desc_size, 0);
 					tmp[length] = '\0';
 					m->desc = tmp;
@@ -170,7 +172,8 @@ int parse_monster_defs(dungeon_t *d) {
 				}
 
 				desc_size += line.length();
-				m->desc = m->desc + line;
+				std::string tmp = m->desc + line;
+				m->desc = t.c_str();
 
 			}
 
@@ -184,7 +187,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's SPEED
-			strtok(line, " ");
+			strtok(line.c_str(), " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -207,7 +210,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's DAM
-			strtok(line, " ");
+			strtok(line.c_str(), " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -225,7 +228,7 @@ int parse_monster_defs(dungeon_t *d) {
 			}
 
 			// split line at a space and discard the first half = we know it's HP
-			strtok(line, " ");
+			strtok(line.c_str(), " ");
 
 			// the second half of line will be the dice representation
 			char *token = strtok(NULL, " ");
@@ -249,7 +252,7 @@ int parse_monster_defs(dungeon_t *d) {
 
 			char *tokens[255];
 			int n = 0;
-			tokens[0] = strtok(line, " ");
+			tokens[0] = strtok(line.c_str(), " ");
 			while(tokens[n] != NULL) {
 				tokens[n] = strtok(NULL, " ");
 				n++;
@@ -259,7 +262,7 @@ int parse_monster_defs(dungeon_t *d) {
 			for(i = 1; i < n; i++) {
 				switch(tokens[i]) {
 					case "SMART":
-						m->characteristics |= NPC_SMART;
+						// m->characteristics |= NPC_SMART;
 						break;
 					case "TELE":
 						// make m telepathic
@@ -283,7 +286,7 @@ int parse_monster_defs(dungeon_t *d) {
 				reading_monster = 0;
 			}
 
-			dungeon->character[m->position[dim_y]][m->position[dim_x]] = m;
+			d->character[m->position[dim_y]][m->position[dim_x]] = m;
 
 			last = end;
 			reading_monster = 0;
