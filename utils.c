@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #include "utils.h"
 
@@ -42,20 +41,3 @@ int makedirectory(char *dir)
   return 0;
 }
 
-int roll_dice(char *dice) {
-
-  // parse dice representation into numbers
-  int base = atoi(strtok(dice, "+"));
-  int num_dice = atoi(strtok(0, "d"));
-  int sides = atoi(strtok(0, " "));
-
-  int i, total;
-  for(i = 0, total = 0; i <= num_dice; i++) {
-    int roll = 1 + rand() % sides;
-    total += roll;
-  }
-
-  total += base;
-
-  return total;
-}

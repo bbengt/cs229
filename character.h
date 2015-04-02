@@ -10,12 +10,7 @@ typedef struct npc npc_t;
 typedef struct pc pc_t;
 
 typedef struct character {
-  char *name;
   char symbol;
-  char *color;
-  char *desc;
-  char *damage;
-  uint32_t hp;
   pair_t position;
   uint32_t speed;
   uint32_t next_turn;

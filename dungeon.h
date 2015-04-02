@@ -1,6 +1,10 @@
 #ifndef DUNGEON_H
 # define DUNGEON_H
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 # include <stdint.h>
 # include <stdio.h>
 
@@ -18,6 +22,7 @@
 #define MAX_PLACEMENT_ATTEMPTS 1000
 #define SAVE_DIR               ".rlg229"
 #define DUNGEON_SAVE_FILE      "dungeon"
+#define MONSTER_DESC_FILE      "monster_desc.txt"
 #define DUNGEON_SAVE_SEMANTIC  "RLG229"
 #define DUNGEON_SAVE_VERSION   1U
 #define VISUAL_RANGE           30
@@ -53,6 +58,7 @@ typedef struct room {
 typedef struct npc npc_t;
 typedef struct pc pc_t;
 typedef struct character character_t;
+typedef void *monster_description_t;
 
 typedef struct dungeon {
   uint32_t num_rooms;
@@ -82,6 +88,7 @@ typedef struct dungeon {
   pair_t io_offset;
   uint32_t save_and_exit;
   uint32_t quit_no_save;
+  monster_description_t monster_descriptions;
 } dungeon_t;
 
 int read_dungeon(dungeon_t *dungeon);
@@ -92,5 +99,9 @@ void init_dungeon(dungeon_t *d);
 void delete_dungeon(dungeon_t *d);
 void new_dungeon(dungeon_t *d);
 void unlink_dungeon(void);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif

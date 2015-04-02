@@ -11,7 +11,7 @@
 #include "npc.h"
 #include "move.h"
 #include "io.h"
-#include "file.h"
+#include "descriptions.h"
 
 static void usage(char *name)
 {
@@ -92,56 +92,50 @@ int main(int argc, char *argv[])
   printf("Seed is %ld.\n", seed);
   srand(seed);
 
-  // io_init_terminal();
+  parse_descriptions(&d);
+  print_descriptions(&d);
+  destroy_descriptions(&d);
+  return 0;
+
+  io_init_terminal();
   init_dungeon(&d);
 
-  // if (read_dungeon(&d)) {
+  if (read_dungeon(&d)) {
     gen_dungeon(&d);
     config_pc(&d);
-    // gen_monsters(&d, nummon, 0);
-  // }
-
-  // io_display(&d);
-  // while (pc_is_alive(&d) && dungeon_has_npcs(&d) &&
-  //        !(d.save_and_exit || d.quit_no_save)) {
-  //   do_moves(&d);
-  //   io_display(&d);
-  //   if (!pc_is_alive(&d)) {
-  //     break;
-  //   }
-  //   io_handle_input(&d);
-  // }
-  // io_display(&d);
-
-  // io_reset_terminal();
-
-  // if (!(d.save_and_exit || d.quit_no_save)) {
-  //   sleep(2);
-  //   if (pc_is_alive(&d)) {
-  //     printf("%s says, \"%s\"\n", d.pc.pc->name, d.pc.pc->catch_phrase);
-  //   } else {
-  //     printf("The monster hordes growl menacingly.\n");
-  //   }
-  //   unlink_dungeon();
-  // } else if (d.save_and_exit) {
-  //   write_dungeon(&d);
-  // } else /* d.quit_no_save */ {
-  //   unlink_dungeon();
-  // }
-
-  // pc_delete(d.pc.pc);
-  // delete_dungeon(&d);
-
-  parse_monster_defs(&d);
-
-  int x, y;
-  for(y = 0; y < DUNGEON_Y; y++) {
-    for(x = 0; x < DUNGEON_X; x++) {
-      if(d.character[y][x]) {
-        printf("name: %s\n", d.character[y][x]->name);
-      }
-    }
+    gen_monsters(&d, nummon, 0);
   }
+
+  io_display(&d);
+  while (pc_is_alive(&d) && dungeon_has_npcs(&d) &&
+         !(d.save_and_exit || d.quit_no_save)) {
+    do_moves(&d);
+    io_display(&d);
+    if (!pc_is_alive(&d)) {
+      break;
+    }
+    io_handle_input(&d);
+  }
+  io_display(&d);
+
+  io_reset_terminal();
+
+  if (!(d.save_and_exit || d.quit_no_save)) {
+    sleep(2);
+    if (pc_is_alive(&d)) {
+      printf("%s says, \"%s\"\n", d.pc.pc->name, d.pc.pc->catch_phrase);
+    } else {
+      printf("The monster hordes growl menacingly.\n");
+    }
+    unlink_dungeon();
+  } else if (d.save_and_exit) {
+    write_dungeon(&d);
+  } else /* d.quit_no_save */ {
+    unlink_dungeon();
+  }
+
+  pc_delete(d.pc.pc);
+  delete_dungeon(&d);
 
   return 0;
 }

@@ -80,7 +80,7 @@ int parse_monster_defs(dungeon_t *d) {
 			printf("in begin\n");
 			m = (character_t *) malloc(sizeof(m));
 			printf("malloc'd m\n");
-			m->desc = (char *) malloc(sizeof(char) * desc_arr_size);
+			m->desc = (char *) malloc(sizeof(m->desc) * desc_arr_size);
 			printf("malloc'd m->desc\n");
 			generate_coords(d, m);
 			printf("generated coords\n");

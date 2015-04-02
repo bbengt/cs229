@@ -1,9 +1,9 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef NPC_H
 # define NPC_H
+
+# ifdef __cplusplus
+extern "C" {
+# endif
 
 # include <stdint.h>
 
@@ -12,7 +12,7 @@ extern "C" {
 # define NPC_SMART         0x00000001
 # define NPC_TELEPATH      0x00000002
 # define NPC_TUNNEL        0x00000004
-# define NPC_PASS          0x00000008
+# define NPC_PASS_WALL     0x00000008
 # define NPC_BIT04         0x00000010
 # define NPC_BIT05         0x00000020
 # define NPC_BIT06         0x00000040
@@ -59,10 +59,9 @@ void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn);
 void npc_delete(npc_t *n);
 void npc_next_pos(dungeon_t *d, character_t *c, pair_t next);
 uint32_t dungeon_has_npcs(dungeon_t *d);
-void generate_coords(dungeon_t *d, character_t *m);
 
-#endif
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
+# endif
+
 #endif
