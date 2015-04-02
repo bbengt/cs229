@@ -69,6 +69,162 @@ static inline void eat_blankspace(std::ifstream &f)
   }  
 }
 
+static uint32_t parse_item_name(std::ifstream &f,
+                                std::string *lookahead,
+                                std::string *name) 
+{
+
+  eat_blankspace(f);
+
+  if(f.peek() == '\n') {
+    return 1;
+  }
+
+  getline(f, *name);
+
+  f >> *lookahead;
+
+  return 0;
+}
+
+static uint32_t parse_item_desc(std::ifstream &f,
+                                   std::string *lookahead,
+                                   std::string *desc)
+{
+  /* DESC is special.  Data doesn't follow on the same line *
+   * as the keyword, so we want to eat the newline, too.    */
+  eat_blankspace(f);
+
+  if (f.peek() != '\n') {
+    return 1;
+  }
+
+  f.get();
+
+  while (f.peek() != EOF) {
+    getline(f, *lookahead);
+    if (lookahead->length() > 77) {
+      return 1;
+    }
+
+    lookahead->push_back('\n');
+
+    if (*lookahead == ".\n") {
+      break;
+    }
+
+    *desc += *lookahead;
+  }
+
+  /* Strip off the trailing newline */
+  desc->erase(desc->length() - 1);
+
+  if (*lookahead != ".\n") {
+    return 1;
+  }
+
+  f >> *lookahead;
+
+  return 0;
+}
+
+static uint32_t parse_item_type(std::ifstream &f,
+                                std::string *lookahead,
+                                std::string *type)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_color(std::ifstream &f,
+                                    std::string *lookahead,
+                                    uint32_t *color)
+{
+  uint32_t i;
+
+  *color = UINT_MAX;
+
+  eat_blankspace(f);
+
+  if (f.peek() == '\n') {
+    return 1;
+  }
+
+  f >> *lookahead;
+
+  for (i = 0; colors_lookup[i].name; i++) {
+    if (*lookahead == colors_lookup[i].name) {
+      *color = colors_lookup[i].value;
+      break;
+    }
+  }
+
+  if (!colors_lookup[i].name) {
+    return 1;
+  }
+
+  eat_blankspace(f);
+  if (f.peek() != '\n') {
+    return 1;
+  }
+
+  f >> *lookahead;
+
+  return 0;
+}
+
+static uint32_t parse_item_hit(std::ifstream &f,
+                               std::string *lookahead,
+                               uint32_t *hit)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_dam(std::ifstream &f,
+                               std::string *lookahead,
+                               uint32_t *dam)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_dodge(std::ifstream &f,
+                                 std::string *lookahead,
+                                 uint32_t *dodge)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_def(std::ifstream &f,
+                               std::string *lookahead,
+                               uint32_t *dodge)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_weight(std::ifstream &f,
+                                  std::string *lookahead,
+                                  uint32_t *weight)
+{
+
+  return 0;
+}
+
+static uint32_t parse_item_speed(std::ifstream &f,
+                                 std::string *lookahead,
+                                 uint32_t *speed)
+{
+
+  return 0;
+}
+
+// ATTR
+
+// VAL
+
 static uint32_t parse_monster_name(std::ifstream &f,
                                    std::string *lookahead,
                                    std::string *name)
