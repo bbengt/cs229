@@ -417,7 +417,7 @@ static uint32_t parse_item_description(std::ifstream &f,
   }
   f >> *lookahead;
 
-  // i_desc.set(name, desc, type, color, speed, attr, hit, dam);
+  i_desc.set(name, desc, type, color, attr, speed, hit, dam, weight, dodge, def, val);
   v->push_back(i_desc);
 
   return 0;
@@ -878,6 +878,33 @@ void monster_description::set(const std::string &name,
   this->damage = damage;
 }
 
+void item_description::set(const std::string &name,
+         const std::string &description,
+         const std::string &type,
+         const uint32_t color,
+         const dice &attributes,
+         const dice &speed,
+         const dice &hit,
+         const dice &damage,
+         const dice &weight,
+         const dice &dodge,
+         const dice &def,
+         const dice &val)
+{
+  this->name = name;
+  this->description = description;
+  this->type = type;
+  this->color = color;
+  this->attributes = attributes;
+  this->speed = speed;
+  this->hit = hit;
+  this->damage = damage;
+  this->weight = weight;
+  this->dodge = dodge;
+  this->def = def;
+  this->val = val;
+}
+
 std::ostream &monster_description::print(std::ostream& o)
 {
   uint32_t i;
@@ -902,6 +929,40 @@ std::ostream &monster_description::print(std::ostream& o)
   hitpoints.print(o);
   o << std::endl;
   damage.print(o);
+  o << std::endl;
+  o << std::endl;
+
+  return o;
+}
+
+std::ostream &item_description::print(std::ostream& o)
+{
+  uint32_t i;
+
+  o << name << std::endl;
+  o << description << std::endl;
+  o << type << std::endl;
+  for (i = 0; colors_lookup[i].name; i++) {
+    if (color == colors_lookup[i].value) {
+      o << colors_lookup[i].name << std::endl;
+      break;
+    }
+  }
+  attributes.print(o);
+  o << std::endl;
+  speed.print(o);
+  o << std::endl;
+  hit.print(o);
+  o << std::endl;
+  damage.print(o);
+  o << std::endl;
+  weight.print(o);
+  o << std::endl;
+  dodge.print(o);
+  o << std::endl;
+  def.print(o);
+  o << std::endl;
+  val.print(o);
   o << std::endl;
   o << std::endl;
 
