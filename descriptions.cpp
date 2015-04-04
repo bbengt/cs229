@@ -39,6 +39,33 @@ static const struct {
   { 0,        0             }
 };
 
+static const struct {
+  const char *name;
+  const uint32_t value;
+} type_lookup[] = {
+
+  { "WEAPON",     ITEM_WEAPON     },
+  { "OFFHAND",    ITEM_OFFHAND    },
+  { "RANGED",     ITEM_RANGED     },
+  { "ARMOR",      ITEM_ARMOR      },
+  { "HELMET",     ITEM_HELMET     },
+  { "CLOAK",      ITEM_CLOAK      },
+  { "GLOVES",     ITEM_GLOVES     },
+  { "BOOTS",      ITEM_BOOTS      },
+  { "RING",       ITEM_RING       },
+  { "AMULET",     ITEM_AMULET     },
+  { "LIGHT",      ITEM_LIGHT      },
+  { "SCROLL",     ITEM_SCROLL     },
+  { "BOOK",       ITEM_BOOK       },
+  { "FLASK",      ITEM_FLASK      },
+  { "GOLD",       ITEM_GOLD       },
+  { "AMMUNITION", ITEM_AMMO       },
+  { "FOOD",       ITEM_FOOD       },
+  { "WAND",       ITEM_WAND       },
+  { "CONTAINER",  ITEM_CONTAINER  },
+  { 0,            0               }
+}; 
+
 #define color_lu_entry(color) { #color, COLOR_##color }
 static const struct {
   const char *name;
@@ -159,10 +186,39 @@ static uint32_t parse_item_desc(std::ifstream &f,
 
 static uint32_t parse_item_type(std::ifstream &f,
                                 std::string *lookahead,
-                                std::string *type)
+                                uint32_t *type)
 {
 
-  // TODO
+ uint32_t i;
+
+  *type = 0;
+
+  eat_blankspace(f);
+
+  if (f.peek() == '\n') {
+    return 1;
+  }
+
+  /* Will not lead to error if an ability is listed multiple times. */
+  while (f.peek() != '\n') {
+    f >> *lookahead;
+
+    for (i = 0; type_lookup[i].name; i++) {
+      if (*lookahead == type_lookup[i].name) {
+        *type |= type_lookup[i].value;
+        break;
+      }
+    }
+
+    if (!type_lookup[i].name) {
+      return 1;
+    }
+
+    eat_blankspace(f);
+  }
+
+  f >> *lookahead;
+
   return 0;
 }
 
@@ -275,8 +331,8 @@ static uint32_t parse_item_description(std::ifstream &f,
   std::string s;
 
   bool read_name, read_type, read_color, read_weight, read_hit, read_dam, read_attr, read_val, read_dodge, read_def, read_speed, read_desc;
-  std::string name, desc, type;
-  uint32_t color;
+  std::string name, desc;
+  uint32_t color, type;
   dice speed, dam, hit, weight, attr, dodge, def, val;
   item_description i_desc;
   int count;
@@ -880,7 +936,7 @@ void monster_description::set(const std::string &name,
 
 void item_description::set(const std::string &name,
          const std::string &description,
-         const std::string &type,
+         const uint32_t &type,
          const uint32_t color,
          const dice &attributes,
          const dice &speed,
