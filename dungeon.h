@@ -23,6 +23,7 @@ extern "C" {
 #define SAVE_DIR               ".rlg229"
 #define DUNGEON_SAVE_FILE      "dungeon"
 #define MONSTER_DESC_FILE      "monster_desc.txt"
+#define ITEM_DESC_FILE         "item_desc.txt"
 #define DUNGEON_SAVE_SEMANTIC  "RLG229"
 #define DUNGEON_SAVE_VERSION   1U
 #define VISUAL_RANGE           30
@@ -59,6 +60,7 @@ typedef struct npc npc_t;
 typedef struct pc pc_t;
 typedef struct character character_t;
 typedef void *monster_description_t;
+typedef void *item_description_t;
 
 typedef struct dungeon {
   uint32_t num_rooms;
@@ -89,6 +91,7 @@ typedef struct dungeon {
   uint32_t save_and_exit;
   uint32_t quit_no_save;
   monster_description_t monster_descriptions;
+  item_description_t item_descriptions;
 } dungeon_t;
 
 int read_dungeon(dungeon_t *dungeon);
