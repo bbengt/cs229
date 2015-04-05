@@ -17,9 +17,9 @@
 #define MONSTER_FILE_SEMANTIC          "RLG229 MONSTER DESCRIPTION"
 #define MONSTER_FILE_VERSION           1U
 #define NUM_MONSTER_DESCRIPTION_FIELDS 8
-#define NUM_ITEM_DESCRIPTION_FIELDS 8
+#define NUM_ITEM_DESCRIPTION_FIELDS    12
 #define ITEM_FILE_SEMANTIC             "RLG229 OBJECT DESCRIPTION"
-#define ITEM_FILE_VERSION               1
+#define ITEM_FILE_VERSION              1
 
 static const struct {
   const char *name;
@@ -342,7 +342,8 @@ static uint32_t parse_item_description(std::ifstream &f,
   if (*lookahead != "BEGIN") {
     std::cerr << "Discovered at " << __FILE__ << ":" << __LINE__ << "\n"
               << "Parse error in item description.\n"
-              << "Discarding item." << std::endl;
+              << "Discarding item.\n"
+              << "lookahead: " << *lookahead << std::endl;
     do {
       f >> *lookahead;
     } while (*lookahead != "BEGIN" && f.peek() != EOF);
@@ -359,7 +360,7 @@ static uint32_t parse_item_description(std::ifstream &f,
        count < NUM_ITEM_DESCRIPTION_FIELDS;
        count++) {
     /* This could definitely be more concise. */
-    if        (*lookahead == "NAME")  {
+    if(*lookahead == "NAME")  {
       if (read_name || parse_item_name(f, lookahead, &name)) {
         std::cerr << "Discovered at " << __FILE__ << ":" << __LINE__ << "\n"
                   << "Parse error in item name.\n"
@@ -430,7 +431,7 @@ static uint32_t parse_item_description(std::ifstream &f,
                   << "Discarding item." << std::endl;
         return 1;
       }
-      read_dam = true;
+      read_attr = true;
     } else if (*lookahead == "DODGE")   {
       if (read_dodge || parse_item_dodge(f, lookahead, &dodge)) {
         std::cerr << "Discovered at " << __FILE__ << ":" << __LINE__ << "\n"
