@@ -1037,6 +1037,8 @@ uint32_t destroy_descriptions(dungeon_t *d)
 {
   delete (std::vector<monster_description> *) d->monster_descriptions;
   d->monster_descriptions = NULL;
+  delete (std::vector<item_description> *) d->item_descriptions;
+  d->item_descriptions = NULL; 
 
   return 0;
 }
