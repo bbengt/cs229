@@ -1,341 +1,380 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
+#include <ncurses.h>
 
 #include "io.h"
+#include "move.h"
 
-/*
-*
-* save(): Saves the game state to $HOME/.rlg229/dungeon
-*
-*/
+/* We're going to be working in a standard 80x24 terminal, and, except when *
+ * the PC is near the edges, we're going to restrict it to the centermost   *
+ * 60x18, defining the center to be at (40,12).  So the PC can be in the    *
+ * rectangle defined by the ordered pairs (11, 4) and (70, 21).  When the   *
+ * PC leaves this zone, if already on the corresponding edge of the map,    *
+ * nothing happens; otherwise, the map shifts by +-40 in x or +- 12 in y,   *
+ * such that the PC is in the center 60x18 region.  Look mode will also     *
+ * shift by 40x12 blocks.  Thus, the set of all possible dungeon positions  *
+ * to correspond with the upper left corner of the dungeon are:             *
+ *                                                                          *
+ *   ( 0,  0), (40,  0), (80,  0)                                           *
+ *   ( 0, 12), (40, 12), (80, 12)                                           *
+ *   ( 0, 24), (40, 24), (80, 24)                                           *
+ *   ( 0, 36), (40, 36), (80, 36)                                           *
+ *   ( 0, 48), (40, 48), (80, 48)                                           *
+ *   ( 0, 60), (40, 60), (80, 60)                                           *
+ *   ( 0, 72), (40, 72), (80, 72)                                           */
 
-int save(dungeon_t *dungeon) {
-
-	// create save file
-	char *home = getenv("HOME");
-	char *filename;
-	FILE *f;
-
-	size_t length = (strlen(home) + strlen(".rlg229") + strlen("dungeon") + 2 + 1);
-
-	filename = malloc(length * sizeof(*filename));
-	sprintf(filename, "%s/.rlg229/", home);
-	mkdir(filename, 0755);
-
-	strcat(filename, "dungeon");
-
-	if(!(f = fopen(filename, "w"))) {
-		fprintf(stderr, "Could not open file\n");
-		return 0;
-	}
-
-	// write filetype & version number
-	fwrite("RLG229", 1, strlen("RLG229"), f);
-
-	uint32_t version = htobe32(1);
-	fwrite(&version, sizeof(version), 1, f);
-
-	// remaining file size
-	uint32_t remaining_size = htobe32(4 + (5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36));
-	fwrite(&remaining_size, sizeof(remaining_size), 1, f);
-
-	// user block offset
-	uint32_t user_block_offset = htobe32((5 * DUNG_Y * DUNG_X) + 2 + (4 * dungeon->num_rooms) + 2 + 4 + 4 + 2 + (dungeon->num_mons * 36));
-	fwrite(&user_block_offset, sizeof(user_block_offset), 1, f);
-
-	// write map data
-	int x, y;
-	uint8_t zero = 0;
-	uint8_t non_zero = 1;
-	uint8_t two = 2;
-	for(y = 0; y < DUNG_Y; y++) {
-		for(x = 0; x < DUNG_X; x++) {
-
-			// Open?
-			switch(dungeon->map[y][x]) {
-				case ter_wall:
-				case ter_immutable:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-				case ter_room:
-				case ter_corridor:
-				case ter_stair_up:
-				case ter_stair_down:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
-					break;
-				case ter_debug:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
-					break;
-			}
-
-			// Part of room?
-			switch(dungeon->map[y][x]) {
-				case ter_wall:
-				case ter_immutable:
-				case ter_corridor:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-				case ter_room:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
-					break;
-				case ter_debug:
-				case ter_stair_up:
-				case ter_stair_down:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-			}
-
-			// Part of corridor?
-			switch(dungeon->map[y][x]) {
-				case ter_wall:
-				case ter_immutable:
-				case ter_room:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-				case ter_corridor:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
-					break;
-				case ter_debug:
-				case ter_stair_up:
-				case ter_stair_down:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-			}
-
-			fwrite(&dungeon->hardness[y][x], sizeof(dungeon->hardness[y][x]), 1, f);
-
-			// Stairs? (1 if up, 2 if down)
-			switch(dungeon->map[y][x]) {
-				case ter_stair_up:
-					fwrite(&two, sizeof(two), 1, f);
-					break;
-				case ter_stair_down:
-					fwrite(&non_zero, sizeof(non_zero), 1, f);
-					break;
-				case ter_debug:
-				case ter_corridor:
-				case ter_room:
-				case ter_immutable:
-				case ter_wall:
-					fwrite(&zero, sizeof(zero), 1, f);
-					break;
-			}
-		}
-	}
-
-	// write room information
-	uint16_t room_count = htobe16(dungeon->num_rooms);
-	fwrite(&room_count, sizeof(room_count), 1, f);
-
-	int i;
-	for(i = 0; i < dungeon->num_rooms; i++) {
-		fwrite(&dungeon->rooms[i].x, 1, 1, f);
-		fwrite(&dungeon->rooms[i].y, 1, 1, f);
-		fwrite(&dungeon->rooms[i].x_width, 1, 1, f);
-		fwrite(&dungeon->rooms[i].y_height, 1, 1, f);
-	}
-
-	uint8_t play_x = dungeon->player.x;
-	uint8_t play_y = dungeon->player.y;
-
-	fwrite(&play_x, sizeof(play_x), 1, f);
-	fwrite(&play_y, sizeof(play_y), 1, f);
-
-	uint32_t game_turn = htobe32(dungeon->player.next_turn);
-	fwrite(&game_turn, sizeof(game_turn), 1, f);
-
-	uint32_t sequence_num = htobe32(dungeon->num_mons + 1);
-	fwrite(&sequence_num, sizeof(sequence_num), 1, f);
-
-	for(i = 0; i < dungeon->num_mons; i++) {
-
-		uint8_t mon_x = dungeon->mons[i].x;
-		uint8_t mon_y = dungeon->mons[i].y;
-		uint8_t mon_speed = dungeon->mons[i].speed;
-		uint8_t smart = dungeon->mons[i].m->smart;
-		uint8_t telepathic = dungeon->mons[i].m->telepathic;
-		uint8_t last_saw_x = dungeon->mons[i].m->last_saw_x;
-		uint8_t last_saw_y = dungeon->mons[i].m->last_saw_y;
-		uint8_t mon_seq_num = i;
-		uint32_t mon_next_turn = htobe32(dungeon->mons[i].next_turn);
-		uint32_t empty = htobe32(0);
-
-		fwrite(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
-		fwrite(&mon_x, sizeof(mon_x), 1, f);
-		fwrite(&mon_y, sizeof(mon_y), 1, f);
-		fwrite(&mon_speed, sizeof(mon_speed), 1, f);
-		fwrite(&smart, sizeof(smart), 1, f);
-		fwrite(&telepathic, sizeof(smart), 1, f);
-		fwrite(&last_saw_x, sizeof(last_saw_x), 1, f);
-		fwrite(&last_saw_y, sizeof(last_saw_y), 1, f);
-		fwrite(&mon_seq_num, sizeof(mon_seq_num), 1, f);
-		fwrite(&mon_next_turn, sizeof(mon_next_turn), 1, f);
-
-		// write 20 bytes of zeros
-		fwrite(&empty, sizeof(empty), 1, f);
-		fwrite(&empty, sizeof(empty), 1, f);
-		fwrite(&empty, sizeof(empty), 1, f);
-		fwrite(&empty, sizeof(empty), 1, f);
-		fwrite(&empty, sizeof(empty), 1, f);
-	}	
-
-	fclose(f);
-
-	return 1;
-
+void io_init_terminal(void)
+{
+  initscr();
+  raw();
+  noecho();
+  curs_set(0);
+  keypad(stdscr, TRUE);
 }
 
-/*
-*
-* load(): loads a game previously saved by the save() function
-*
-*/
-
-int load(dungeon_t *dungeon) {
-
-	char id[6];
-	char *home = getenv("HOME");
-	char *filename;
-	FILE *f;
-
-	size_t length = (strlen(home) + strlen(".rlg229") + strlen("dungeon") + 2 + 1);
-
-	filename = malloc(length * sizeof(*filename));
-	sprintf(filename, "%s/.rlg229/dungeon", home);
-
-	f = fopen(filename, "r");
-
-	// read filetype identifier
-	fread(id, sizeof(id), 1, f);
-	if(strncmp(id, "RLG229", 6)) {
-		return 0;
-	}
-
-	uint32_t i32;
-	uint16_t i16;
-
-	// read version number
-	fread(&i32, sizeof(i32), 1, f);
-
-	// read in remaining file size
-	fread(&i32, sizeof(i32), 1, f);
-
-	// read in user block offset
-	fread(&i32, sizeof(i32), 1, f);
-
-	// read in map
-	uint8_t open, room, corridor, stairs;
-	int x, y;
-	for(y = 0; y < DUNG_Y; y++) {
-		for(x = 0; x < DUNG_X; x++) {
-			fread(&open, sizeof(open), 1, f);
-			fread(&room, sizeof(room), 1, f);
-			fread(&corridor, sizeof(corridor), 1, f);
-			fread(&dungeon->hardness[y][x], sizeof(dungeon->hardness[y][x]), 1, f);
-			fread(&stairs, sizeof(stairs), 1, f);
-
-			if(room) {
-				dungeon->map[y][x] = ter_room;
-			} else if(corridor) {
-				dungeon->map[y][x] = ter_corridor;
-			} else if(y == 0 || y == DUNG_Y - 1 || x == 0 || x == DUNG_X - 1) {
-				dungeon->map[y][x] = ter_immutable;
-			} else if(stairs == 1) {
-				dungeon->map[y][x] = ter_stair_down;
-			} else if(stairs == 2) {
-				dungeon->map[y][x] = ter_stair_up;
-			} else {
-				dungeon->map[y][x] = ter_wall;
-			}
-		}
-	}
-
-	// read in number of rooms
-	fread(&i16, sizeof(i16), 1, f);
-	dungeon->num_rooms = be16toh(i16);
-
-	// read in rooms
-	int i;
-	for(i = 0; i < dungeon->num_rooms; i++) {
-		fread(&dungeon->rooms[i].x, sizeof(dungeon->rooms[i].x), 1, f);
-		fread(&dungeon->rooms[i].y, sizeof(dungeon->rooms[i].y), 1, f);
-		fread(&dungeon->rooms[i].x_width, sizeof(dungeon->rooms[i].x_width), 1, f);
-		fread(&dungeon->rooms[i].y_height, sizeof(dungeon->rooms[i].y_height), 1, f);
-	}
-
-	// read in PC location
-	fread(&dungeon->player.x, sizeof(dungeon->player.x), 1, f);
-	fread(&dungeon->player.y, sizeof(dungeon->player.y), 1, f);
-
-	// set PC speed
-	dungeon->player.speed = 20;
-
-	// create player struct
-	player_t p = { dungeon->player.x, dungeon->player.y, dungeon->player.speed };
-	dungeon->player.p = &p;
-
-	// read in PC's next turn (game turn)
-	fread(&i32, sizeof(i32), 1, f);
-	dungeon->player.next_turn = be32toh(i32);
-
-	// read in monster sequence number (num_mons + 1)
-	fread(&i32, sizeof(i32), 1, f);
-
-	// read in number of monsters in the dungeon
-	fread(&i16, sizeof(i16), 1, f);
-	dungeon->num_mons = be16toh(i16);
-
-	// read in NPCs
-	for(i = 0; i < dungeon->num_mons; i++) {
-
-		// allocate memory for m in mons array
-		mon_t m;
-
-		fread(&dungeon->mons[i].type, sizeof(dungeon->mons[i].type), 1, f);
-		fread(&dungeon->mons[i].x, sizeof(dungeon->mons[i].x), 1, f);
-		fread(&dungeon->mons[i].y, sizeof(dungeon->mons[i].y), 1, f);
-		fread(&dungeon->mons[i].speed, sizeof(dungeon->mons[i].speed), 1, f);
-		fread(&m.smart, sizeof(m.smart), 1, f);
-		fread(&m.telepathic, sizeof(m.telepathic), 1, f);
-		fread(&m.last_saw_x, sizeof(m.last_saw_x), 1, f);
-		fread(&m.last_saw_y, sizeof(m.last_saw_y), 1, f);
-		fread(&i32, sizeof(i32), 1, f);
-		fread(&dungeon->mons[i].next_turn, sizeof(dungeon->mons[i].next_turn), 1, f);
-
-		dungeon->mons[i].m = &m;
-
-		// read in extra 20 bytes
-		fread(&i32, sizeof(i32), 1, f);
-		fread(&i32, sizeof(i32), 1, f);
-		fread(&i32, sizeof(i32), 1, f);
-		fread(&i32, sizeof(i32), 1, f);
-		fread(&i32, sizeof(i32), 1, f);
-	}
-
-	fclose(f);
-
-	return 1;
-
+void io_reset_terminal(void)
+{
+  endwin();
 }
 
-int save_file_exists() {
+void io_calculate_offset(dungeon_t *d)
+{
+  d->io_offset[dim_x] = ((d->pc.position[dim_x] - 20) / 40) * 40;
+  if (d->io_offset[dim_x] < 0) {
+    d->io_offset[dim_x] = 0;
+  }
+  if (d->io_offset[dim_x] > 80) {
+    d->io_offset[dim_x] = 80;
+  }
+  d->io_offset[dim_y] = ((d->pc.position[dim_y] - 6) / 12) * 12;
+  if (d->io_offset[dim_y] < 0) {
+    d->io_offset[dim_y] = 0;
+  }
+  if (d->io_offset[dim_y] > 72) {
+    d->io_offset[dim_y] = 72;
+  }
 
-	char *home = getenv("HOME");
-	char *filename;
+#if 0
+  uint32_t y;
+  uint32_t min_diff, diff;
 
-	size_t length = (strlen(home) + strlen(".rlg229") + strlen("dungeon") + 2 + 1);
+  min_diff = diff = abs(d->pc.position[dim_x] - 40);
+  d->io_offset[dim_x] = 0;
+  if ((diff = abs(d->pc.position[dim_x] - 80)) < min_diff) {
+    min_diff = diff;
+    d->io_offset[dim_x] = 40;
+  }
+  if ((diff = abs(d->pc.position[dim_x] - 120)) < min_diff) {
+    min_diff = diff;
+    d->io_offset[dim_x] = 80;
+  }
 
-	filename = malloc(length * sizeof(*filename));
-	sprintf(filename, "%s/.rlg229/", home);
-	strcat(filename, "dungeon");
+  /* A lot more y values to deal with, so use a loop */
 
-	if(access(filename, R_OK) == 0) {
-		free(filename);
-		return 1;
-	}
-	free(filename);
-	return 0;
+  for (min_diff = 96, d->io_offset[dim_y] = 0, y = 12; y <= 72; y += 12) {
+    if ((diff = abs(d->pc.position[dim_y] - (y + 12))) < min_diff) {
+      min_diff = diff;
+      d->io_offset[dim_y] = y;
+    }
+  }
+#endif
+}
+
+void io_update_offset(dungeon_t *d)
+{
+  int32_t x, y;
+
+  x = (40 + d->io_offset[dim_x]) - d->pc.position[dim_x];
+  y = (12 + d->io_offset[dim_y]) - d->pc.position[dim_y];
+
+  if (x >= 30 && d->io_offset[dim_x]) {
+    d->io_offset[dim_x] -= 40;
+  }
+  if (x <= -30 && d->io_offset[dim_x] != 80) {
+    d->io_offset[dim_x] += 40;
+  }
+  if (y >= 8 && d->io_offset[dim_y]) {
+    d->io_offset[dim_y] -= 12;
+  }
+  if (y <= -8 && d->io_offset[dim_y] != 72) {
+    d->io_offset[dim_y] += 12;
+  }
+}
+
+void io_display_huge(dungeon_t *d)
+{
+  uint32_t y, x;
+
+  clear();
+  for (y = 0; y < DUNGEON_Y; y++) {
+    for (x = 0; x < DUNGEON_X; x++) {
+      if (d->character[y][x]) {
+        mvaddch(y, x, d->character[y][x]->symbol);
+      } else {
+        switch (mapxy(x, y)) {
+        case ter_wall:
+        case ter_wall_no_room:
+        case ter_wall_no_floor:
+        case ter_wall_immutable:
+          mvaddch(y, x, '#');
+          break;
+        case ter_floor:
+        case ter_floor_room:
+        case ter_floor_hall:
+        case ter_floor_tentative:
+          mvaddch(y, x, '.');
+          break;
+        case ter_debug:
+          mvaddch(y, x, '*');
+          break;
+        case ter_stairs_up:
+          mvaddch(y, x, '<');
+          break;
+        case ter_stairs_down:
+          mvaddch(y, x, '>');
+          break;
+        default:
+ /* Use zero as an error symbol, since it stands out somewhat, and it's *
+  * not otherwise used.                                                 */
+          mvaddch(y, x, '0');
+        }
+      }
+    }
+  }
+  refresh();
+}
+
+void io_display(dungeon_t *d)
+{
+  uint32_t y, x;
+
+  clear();
+  for (y = 0; y < 24; y++) {
+    for (x = 0; x < 80; x++) {
+      if (d->character[d->io_offset[dim_y] + y]
+                      [d->io_offset[dim_x] + x]) {
+        mvaddch(y, x, d->character[d->io_offset[dim_y] + y]
+                                  [d->io_offset[dim_x] + x]->symbol);
+      } else {
+        switch (mapxy(d->io_offset[dim_x] + x,
+                      d->io_offset[dim_y] + y)) {
+        case ter_wall:
+        case ter_wall_no_room:
+        case ter_wall_no_floor:
+        case ter_wall_immutable:
+          mvaddch(y, x, '#');
+          break;
+        case ter_floor:
+        case ter_floor_room:
+        case ter_floor_hall:
+        case ter_floor_tentative:
+          mvaddch(y, x, '.');
+          break;
+        case ter_debug:
+          mvaddch(y, x, '*');
+          break;
+        case ter_stairs_up:
+          mvaddch(y, x, '<');
+          break;
+        case ter_stairs_down:
+          mvaddch(y, x, '>');
+          break;
+        default:
+ /* Use zero as an error symbol, since it stands out somewhat, and it's *
+  * not otherwise used.                                                 */
+          mvaddch(y, x, '0');
+        }
+      }
+    }
+  }
+  mvprintw(0, 0, "PC position is (%3d,%2d); offset is (%3d,%2d).",
+           d->pc.position[dim_x], d->pc.position[dim_y],
+           d->io_offset[dim_x], d->io_offset[dim_y]);
+
+
+  refresh();
+}
+
+void io_look_mode(dungeon_t *d)
+{
+  int32_t key;
+
+  do {
+    if ((key = getch()) == 27 /* ESC */) {
+      io_calculate_offset(d);
+      io_display(d);
+      return;
+    }
+    
+    switch (key) {
+    case '1':
+    case 'b':
+    case KEY_END:
+    case '2':
+    case 'j':
+    case KEY_DOWN:
+    case '3':
+    case 'n':
+    case KEY_NPAGE:
+      if (d->io_offset[dim_y] != 72) {
+        d->io_offset[dim_y] += 12;
+      }
+      break;
+    case '4':
+    case 'h':
+    case KEY_LEFT:
+    case '5':
+    case ' ':
+    case KEY_B2:
+    case '6':
+    case 'l':
+    case KEY_RIGHT:
+      break;
+    case '7':
+    case 'y':
+    case KEY_HOME:
+    case '8':
+    case 'k':
+    case KEY_UP:
+    case '9':
+    case 'u':
+    case KEY_PPAGE:
+      if (d->io_offset[dim_y]) {
+        d->io_offset[dim_y] -= 12;
+      }
+      break;
+    }
+    switch (key) {
+    case '1':
+    case 'b':
+    case KEY_END:
+    case '4':
+    case 'h':
+    case KEY_LEFT:
+    case '7':
+    case 'y':
+    case KEY_HOME:
+      if (d->io_offset[dim_x]) {
+        d->io_offset[dim_x] -= 40;
+      }
+      break;
+    case '2':
+    case 'j':
+    case KEY_DOWN:
+    case '5':
+    case ' ':
+    case KEY_B2:
+    case '8':
+    case 'k':
+    case KEY_UP:
+      break;
+    case '3':
+    case 'n':
+    case KEY_NPAGE:
+    case '6':
+    case 'l':
+    case KEY_RIGHT:
+    case '9':
+    case 'u':
+    case KEY_PPAGE:
+      if (d->io_offset[dim_x] != 80) {
+        d->io_offset[dim_x] += 40;
+      }
+      break;
+    }
+    io_display(d);
+  } while (1);
+}
+
+void io_handle_input(dungeon_t *d)
+{
+  uint32_t fail_code;
+  int key;
+
+  do {
+    switch (key = getch()) {
+    case '7':
+    case 'y':
+    case KEY_HOME:
+      fail_code = move_pc(d, 7);
+      break;
+    case '8':
+    case 'k':
+    case KEY_UP:
+      fail_code = move_pc(d, 8);
+      break;
+    case '9':
+    case 'u':
+    case KEY_PPAGE:
+      fail_code = move_pc(d, 9);
+      break;
+    case '6':
+    case 'l':
+    case KEY_RIGHT:
+      fail_code = move_pc(d, 6);
+      break;
+    case '3':
+    case 'n':
+    case KEY_NPAGE:
+      fail_code = move_pc(d, 3);
+      break;
+    case '2':
+    case 'j':
+    case KEY_DOWN:
+      fail_code = move_pc(d, 2);
+      break;
+    case '1':
+    case 'b':
+    case KEY_END:
+      fail_code = move_pc(d, 1);
+      break;
+    case '4':
+    case 'h':
+    case KEY_LEFT:
+      fail_code = move_pc(d, 4);
+      break;
+    case '5':
+    case ' ':
+    case KEY_B2:
+      fail_code = 0;
+      break;
+    case '>':
+      fail_code = move_pc(d, '>');
+      break;
+    case '<':
+      fail_code = move_pc(d, '<');
+      break;
+    case 'L':
+      io_look_mode(d);
+      fail_code = 0;
+      break;
+    case 'S':
+      d->save_and_exit = 1;
+      d->pc.next_turn -= (1000 / d->pc.speed);
+      fail_code = 0;
+      break;
+    case 'Q':
+      /* Extra command, not in the spec.  Quit without saving.          */
+      d->quit_no_save = 1;
+      fail_code = 0;
+      break;
+    case 'H':
+      /* Extra command, not in the spec.  H is for Huge: draw the whole *
+       * dungeon, the pre-curses way.  Doesn't use a player turn.       */
+      io_display_huge(d);
+      fail_code = 1;
+      break;
+    default:
+      /* Also not in the spec.  It's not always easy to figure out what *
+       * key code corresponds with a given keystroke.  Print out any    *
+       * unhandled key here.  Not only does it give a visual error      *
+       * indicator, but it also gives an integer value that can be used *
+       * for that key in this (or other) switch statements.  Printed in *
+       * octal, with the leading zero, because ncurses.h lists codes in *
+       * octal, thus allowing us to do reverse lookups.  If a key has a *
+       * name defined in the header, you can use the name here, else    *
+       * you can directly use the octal value.                          */
+      mvprintw(0, 0, "Unbound key: %#o ", key);
+      fail_code = 1;
+    }
+  } while (fail_code);
 }

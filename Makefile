@@ -1,26 +1,31 @@
-assignment := $(shell git symbolic-ref --short HEAD | cut -c3-6)
 CC = gcc
+CXX = g++
 ECHO = echo
 RM = rm -f
 
 CFLAGS = -Wall -Werror -ggdb
-LDFLAGS = -lncurses -lm
+CXXFLAGS = -Wall -Werror -ggdb
+LDFLAGS = -lncurses
 
-BIN = dungeon
-OBJS = heap.o io.o main.o map.o mon.o player.o rungame.o screen.o
+BIN = rlg229
+OBJS = rlg229.o dungeon.o move.o utils.o heap.o character.o pc.o npc.o io.o \
+       dice.o descriptions.o
 
-# all: $(BIN) etags
 all: $(BIN)
 
 $(BIN): $(OBJS)
 	@$(ECHO) Linking $@
-	@$(CC) $^ -o $@ $(LDFLAGS)
+	@$(CXX) $^ -o $@ $(LDFLAGS)
 
 -include $(OBJS:.o=.d)
 
 %.o: %.c
 	@$(ECHO) Compiling $<
 	@$(CC) $(CFLAGS) -MMD -MF $*.d -c $<
+
+%.o: %.cpp
+	@$(ECHO) Compiling $<
+	@$(CXX) $(CXXFLAGS) -MMD -MF $*.d -c $<
 
 .PHONY: clean clobber etags
 
@@ -32,14 +37,3 @@ clobber: clean
 	@$(ECHO) Removing backup files
 	@$(RM) *~ \#*
 
-# etags:
-# 	@$(ECHO) Updating TAGS
-# 	@etags *.[ch]
-
-
-tar:
-	mkdir bengtson_brian.assignment-$(assignment)
-	cp *.c *.h extras/README extras/CHANGELOG extras/Makefile.real bengtson_brian.assignment-$(assignment)/
-	mv bengtson_brian.assignment-$(assignment)/Makefile.real bengtson_brian.assignment-$(assignment)/Makefile
-	tar cvfz bengtson_brian.assignment-$(assignment).tar.gz bengtson_brian.assignment-$(assignment)/
-	rm -rf bengtson_brian.assignment-$(assignment)/
