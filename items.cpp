@@ -9,4 +9,5 @@ class Item {
 	public:
 		item_description item_desc;
 		uint32_t x, y;
+		uint32_t color;
 };

@@ -17,9 +17,6 @@ uint32_t parse_descriptions(dungeon_t *d);
 uint32_t print_descriptions(dungeon_t *d);
 uint32_t destroy_descriptions(dungeon_t *d);
 
-# ifdef __cplusplus
-} /* extern "C" */
-
 # define ITEM_WEAPON       0x00000001
 # define ITEM_OFFHAND      0x00000002
 # define ITEM_RANGED       0x00000004
@@ -52,6 +49,9 @@ uint32_t destroy_descriptions(dungeon_t *d);
 # define ITEM_BIT29        0x20000000
 # define ITEM_BIT30        0x40000000
 # define ITEM_BIT31        0x80000000
+
+# ifdef __cplusplus
+} /* extern "C" */
 
 class monster_description {
  private:

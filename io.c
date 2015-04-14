@@ -149,6 +149,42 @@ void io_display_huge(dungeon_t *d)
           case ITEM_BOOTS:
             mvaddch(y, x, '\\');
             break;
+          case ITEM_RING:
+            mvaddch(y, x, '=');
+            break;
+          case ITEM_AMULET:
+            mvaddch(y, x, '"');
+            break;
+          case ITEM_LIGHT:
+            mvaddch(y, x, '_');
+            break;
+          case ITEM_SCROLL:
+            mvaddch(y, x, '~');
+            break;
+          case ITEM_BOOK:
+            mvaddch(y, x, '?');
+            break;
+          case ITEM_FLASK:
+            mvaddch(y, x, '!');
+            break;
+          case ITEM_GOLD:
+            mvaddch(y, x, '$');
+            break;
+          case ITEM_AMMO:
+            mvaddch(y, x, '/');
+            break;
+          case ITEM_FOOD:
+            mvaddch(y, x, ',');
+            break;
+          case ITEM_WAND:
+            mvaddch(y, x, '-');
+            break;
+          case ITEM_CONTAINER:
+            mvaddch(y, x, '%');
+            break;
+          default:
+            mvaddch(y, x, '*');
+            break;
           attroff(COLOR_PAIR(COLOR_RED));
         }
 
