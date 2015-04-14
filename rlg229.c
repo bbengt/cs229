@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
   printf("Seed is %ld.\n", seed);
   srand(seed);
 
-  parse_descriptions(&d);
-  print_descriptions(&d);
-  destroy_descriptions(&d);
-  return 0;
+  // parse_descriptions(&d);
+  // print_descriptions(&d);
+  // destroy_descriptions(&d);
+  // return 0;
 
   io_init_terminal();
   init_dungeon(&d);

@@ -10,9 +10,14 @@ typedef struct npc npc_t;
 typedef struct pc pc_t;
 
 typedef struct character {
+  char *name;
+  char *desc;
   char symbol;
+  uint32_t color;
   pair_t position;
   uint32_t speed;
+  uint32_t hitpoints;
+  uint32_t damage;
   uint32_t next_turn;
   uint32_t alive;
   /* The priority queue is not stable.  It's nice to have a record of *

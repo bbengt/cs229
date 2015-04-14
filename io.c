@@ -3,6 +3,7 @@
 
 #include "io.h"
 #include "move.h"
+#include "descriptions.h"
 
 /* We're going to be working in a standard 80x24 terminal, and, except when *
  * the PC is near the edges, we're going to restrict it to the centermost   *
@@ -29,6 +30,16 @@ void io_init_terminal(void)
   noecho();
   curs_set(0);
   keypad(stdscr, TRUE);
+  start_color();
+
+  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK); 
+  init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+  init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+  init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+  init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
+  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+  init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
 }
 
 void io_reset_terminal(void)
@@ -108,7 +119,39 @@ void io_display_huge(dungeon_t *d)
   for (y = 0; y < DUNGEON_Y; y++) {
     for (x = 0; x < DUNGEON_X; x++) {
       if (d->character[y][x]) {
+        attron(COLOR_PAIR(d->character[y][x]->color));
         mvaddch(y, x, d->character[y][x]->symbol);
+        attroff(COLOR_PAIR(d->character[y][x]->color));
+      } else if(0 != 0) {
+        switch(d->items[y][x]) {
+          attron(COLOR_PAIR(d->items[y][x].color));
+          case ITEM_WEAPON:
+            mvaddch(y, x, '|');
+            break;
+          case ITEM_OFFHAND:
+            mvaddch(y, x, ')');
+            break;
+          case ITEM_RANGED:
+            mvaddch(y, x, '}');
+            break;
+          case ITEM_ARMOR:
+            mvaddch(y, x, '[');
+            break;
+          case ITEM_HELMET:
+            mvaddch(y, x, ']');
+            break;
+          case ITEM_CLOAK:
+            mvaddch(y, x, '(');
+            break;
+          case ITEM_GLOVES:
+            mvaddch(y, x, '{');
+            break;
+          case ITEM_BOOTS:
+            mvaddch(y, x, '\\');
+            break;
+          attroff(COLOR_PAIR(COLOR_RED));
+        }
+
       } else {
         switch (mapxy(x, y)) {
         case ter_wall:

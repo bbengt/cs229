@@ -61,6 +61,7 @@ typedef struct pc pc_t;
 typedef struct character character_t;
 typedef void *monster_description_t;
 typedef void *item_description_t;
+typedef void *item_t;
 
 typedef struct dungeon {
   uint32_t num_rooms;
@@ -92,6 +93,7 @@ typedef struct dungeon {
   uint32_t quit_no_save;
   monster_description_t monster_descriptions;
   item_description_t item_descriptions;
+  item_t items[DUNGEON_Y][DUNGEON_X];
 } dungeon_t;
 
 int read_dungeon(dungeon_t *dungeon);
