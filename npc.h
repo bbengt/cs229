@@ -53,6 +53,9 @@ typedef struct npc {
   npc_characteristics_t characteristics;
   uint32_t have_seen_pc;
   pair_t pc_last_known_position;
+  const char *name;
+  const char *description;
+
 } npc_t;
 
 void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn);

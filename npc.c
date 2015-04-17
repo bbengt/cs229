@@ -4,6 +4,8 @@
 #include "npc.h"
 #include "dungeon.h"
 #include "character.h"
+#include "descriptions.h"
+#include "move.h"
 
 void npc_delete(npc_t *n)
 {
@@ -14,13 +16,14 @@ void npc_delete(npc_t *n)
 
 void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn)
 {
-  character_t *m;
-  uint32_t room;
   uint32_t i;
-  pair_t p;
 
   d->num_monsters = nummon;
   for (i = 0; i < nummon; i++) {
+    /* Does all the necessary work inside, so ignoring the return value. */
+    generate_monster(d);
+
+    /*
     m = malloc(sizeof (*m));
 
     m->symbol = 'A' + rand_range(0, 25) + ((rand() & 1) ? 32 : 0);
@@ -48,6 +51,7 @@ void gen_monsters(dungeon_t *d, uint32_t nummon, uint32_t game_turn)
     d->character[p[dim_y]][p[dim_x]] = m;
 
     heap_insert(&d->next_turn, m);
+    */
   }
 }
 
@@ -96,62 +100,124 @@ void npc_next_pos_line_of_sight(dungeon_t *d, character_t *c, pair_t next)
     dir[dim_x] /= abs(dir[dim_x]);
   }
 
-  if (mapxy(next[dim_x] + dir[dim_x], next[dim_y] + dir[dim_y]) >= ter_floor) {
+  if ((c->npc->characteristics & NPC_TELEPATH) &&
+      (c->npc->characteristics & NPC_PASS_WALL)) {
     next[dim_x] += dir[dim_x];
     next[dim_y] += dir[dim_y];
-  } else if (mapxy(next[dim_x] + dir[dim_x], next[dim_y]) >= ter_floor) {
-    next[dim_x] += dir[dim_x];
-  } else if (mapxy(next[dim_x], next[dim_y] + dir[dim_y]) >= ter_floor) {
-    next[dim_y] += dir[dim_y];
+  } else {
+    if (mapxy(next[dim_x] + dir[dim_x],
+              next[dim_y] + dir[dim_y]) >= ter_floor) {
+      next[dim_x] += dir[dim_x];
+      next[dim_y] += dir[dim_y];
+    } else if (mapxy(next[dim_x] + dir[dim_x], next[dim_y]) >= ter_floor) {
+      next[dim_x] += dir[dim_x];
+    } else if (mapxy(next[dim_x], next[dim_y] + dir[dim_y]) >= ter_floor) {
+      next[dim_y] += dir[dim_y];
+    }
   }
 }
 
 void npc_next_pos_gradient(dungeon_t *d, character_t *c, pair_t next)
 {
-  /* Make monsters prefer cardinal directions */
-  if (d->pc_distance[next[dim_y] - 1][next[dim_x]    ] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]--;
-    return;
-  }
-  if (d->pc_distance[next[dim_y] + 1][next[dim_x]    ] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]++;
-    return;
-  }
-  if (d->pc_distance[next[dim_y]    ][next[dim_x] + 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_x]++;
-    return;
-  }
-  if (d->pc_distance[next[dim_y]    ][next[dim_x] - 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_x]--;
-    return;
-  }
-  if (d->pc_distance[next[dim_y] - 1][next[dim_x] + 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]--;
-    next[dim_x]++;
-    return;
-  }
-  if (d->pc_distance[next[dim_y] + 1][next[dim_x] + 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]++;
-    next[dim_x]++;
-    return;
-  }
-  if (d->pc_distance[next[dim_y] - 1][next[dim_x] - 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]--;
-    next[dim_x]--;
-    return;
-  }
-  if (d->pc_distance[next[dim_y] + 1][next[dim_x] - 1] <
-      d->pc_distance[next[dim_y]][next[dim_x]]) {
-    next[dim_y]++;
-    next[dim_x]--;
-    return;
+  pair_t min_next;
+  uint16_t min_cost;
+  if (c->npc->characteristics & NPC_TUNNEL) {
+    min_cost = d->pc_tunnel[next[dim_y] - 1][next[dim_x]];
+    min_next[dim_x] = next[dim_x];
+    min_next[dim_y] = next[dim_y] - 1;
+    if (d->pc_tunnel[next[dim_y] + 1][next[dim_x]    ] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y] + 1][next[dim_x]];
+      min_next[dim_x] = next[dim_x];
+      min_next[dim_y] = next[dim_y] + 1;
+    }
+    if (d->pc_tunnel[next[dim_y]    ][next[dim_x] + 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y]][next[dim_x] + 1];
+      min_next[dim_x] = next[dim_x] + 1;
+      min_next[dim_y] = next[dim_y];
+    }
+    if (d->pc_tunnel[next[dim_y]    ][next[dim_x] - 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y]][next[dim_x] - 1];
+      min_next[dim_x] = next[dim_x] - 1;
+      min_next[dim_y] = next[dim_y];
+    }
+    if (d->pc_tunnel[next[dim_y] - 1][next[dim_x] + 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y] - 1][next[dim_x] + 1];
+      min_next[dim_x] = next[dim_x] + 1;
+      min_next[dim_y] = next[dim_y] - 1;
+    }
+    if (d->pc_tunnel[next[dim_y] + 1][next[dim_x] + 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y] + 1][next[dim_x] + 1];
+      min_next[dim_x] = next[dim_x] + 1;
+      min_next[dim_y] = next[dim_y] + 1;
+    }
+    if (d->pc_tunnel[next[dim_y] - 1][next[dim_x] - 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y] - 1][next[dim_x] - 1];
+      min_next[dim_x] = next[dim_x] - 1;
+      min_next[dim_y] = next[dim_y] - 1;
+    }
+    if (d->pc_tunnel[next[dim_y] + 1][next[dim_x] - 1] < min_cost) {
+      min_cost = d->pc_tunnel[next[dim_y] + 1][next[dim_x] - 1];
+      min_next[dim_x] = next[dim_x] - 1;
+      min_next[dim_y] = next[dim_y] + 1;
+    }
+    if (hardnesspair(min_next) <= 60) {
+      hardnesspair(min_next) = 0;
+      mappair(min_next) = ter_floor_tunnel;
+      next[dim_x] = min_next[dim_x];
+      next[dim_y] = min_next[dim_y];
+
+      /* Update distance maps because map has changed. */
+      dijkstra(d);
+      dijkstra_tunnel(d);
+    } else {
+      hardnesspair(min_next) -= 60;
+    }
+  } else {
+    /* Make monsters prefer cardinal directions */
+    if (d->pc_distance[next[dim_y] - 1][next[dim_x]    ] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]--;
+      return;
+    }
+    if (d->pc_distance[next[dim_y] + 1][next[dim_x]    ] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]++;
+      return;
+    }
+    if (d->pc_distance[next[dim_y]    ][next[dim_x] + 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_x]++;
+      return;
+    }
+    if (d->pc_distance[next[dim_y]    ][next[dim_x] - 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_x]--;
+      return;
+    }
+    if (d->pc_distance[next[dim_y] - 1][next[dim_x] + 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]--;
+      next[dim_x]++;
+      return;
+    }
+    if (d->pc_distance[next[dim_y] + 1][next[dim_x] + 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]++;
+      next[dim_x]++;
+      return;
+    }
+    if (d->pc_distance[next[dim_y] - 1][next[dim_x] - 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]--;
+      next[dim_x]--;
+      return;
+    }
+    if (d->pc_distance[next[dim_y] + 1][next[dim_x] - 1] <
+        d->pc_distance[next[dim_y]][next[dim_x]]) {
+      next[dim_y]++;
+      next[dim_x]--;
+      return;
+    }
   }
 }
 
@@ -160,8 +226,15 @@ void npc_next_pos(dungeon_t *d, character_t *c, pair_t next)
   next[dim_y] = c->position[dim_y];
   next[dim_x] = c->position[dim_x];
 
-  switch (c->npc->characteristics & (NPC_SMART | NPC_TELEPATH)) {
+  /* There are now (1.09) 16 possibilities.  Since there are cases *
+   * that overlap, a switch may not be the best option anymore,    *
+   * but I'm not sure, so I'll stick with it, at least for now.    */
+  switch (c->npc->characteristics &
+          (NPC_SMART | NPC_TELEPATH | NPC_TUNNEL | NPC_PASS_WALL)) {
   case 0:
+  case NPC_TUNNEL:
+  case NPC_PASS_WALL:
+  case NPC_PASS_WALL | NPC_TUNNEL:
     if (can_see(d, c, &d->pc)) {
       c->npc->pc_last_known_position[dim_y] = d->pc.position[dim_y];
       c->npc->pc_last_known_position[dim_x] = d->pc.position[dim_x];
@@ -171,6 +244,9 @@ void npc_next_pos(dungeon_t *d, character_t *c, pair_t next)
     }
     break;
   case NPC_SMART:
+  case NPC_SMART | NPC_TUNNEL:
+  case NPC_PASS_WALL | NPC_SMART:
+  case NPC_PASS_WALL | NPC_SMART | NPC_TUNNEL:
     if (can_see(d, c, &d->pc)) {
       c->npc->pc_last_known_position[dim_y] = d->pc.position[dim_y];
       c->npc->pc_last_known_position[dim_x] = d->pc.position[dim_x];
@@ -184,6 +260,11 @@ void npc_next_pos(dungeon_t *d, character_t *c, pair_t next)
     }
     break;
   case NPC_TELEPATH:
+  case NPC_TELEPATH | NPC_TUNNEL:
+  case NPC_PASS_WALL | NPC_TELEPATH:
+  case NPC_PASS_WALL | NPC_SMART | NPC_TELEPATH:
+  case NPC_PASS_WALL | NPC_TELEPATH | NPC_TUNNEL:
+  case NPC_PASS_WALL | NPC_SMART | NPC_TELEPATH | NPC_TUNNEL:
     /* We could implement a "toward pc" movement function, but this works *
      * just as well, since the line of sight calculations are down        *
      * outside of the next position function.                             */
@@ -192,6 +273,7 @@ void npc_next_pos(dungeon_t *d, character_t *c, pair_t next)
     npc_next_pos_line_of_sight(d, c, next);      
     break;
   case NPC_SMART | NPC_TELEPATH:
+  case NPC_SMART | NPC_TELEPATH | NPC_TUNNEL:
       npc_next_pos_gradient(d, c, next);
     break;
   }

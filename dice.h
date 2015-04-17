@@ -10,10 +10,12 @@
 extern "C" {
 # endif
 
-typedef void *dice_t;
-dice_t new_dice(int32_t base, uint32_t number, uint32_t sides);
-void destroy_dice(dice_t d);
-int32_t roll_dice(dice_t d);
+typedef struct dice_t {
+} dice_t;
+
+dice_t *new_dice(int32_t base, uint32_t number, uint32_t sides);
+void destroy_dice(dice_t *d);
+int32_t roll_dice(dice_t *d);
 
 # ifdef __cplusplus
 } /* extern "C" */
@@ -48,7 +50,7 @@ class dice {
   {
     this->sides = sides;
   }
-  int32_t roll(void);
+  int32_t roll(void) const;
   std::ostream &print(std::ostream &o);
 };
 

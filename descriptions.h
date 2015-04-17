@@ -4,6 +4,8 @@
 # include <stdint.h>
 
 typedef struct dungeon dungeon_t;
+typedef struct character character_t;
+typedef struct object_t object_t;
 
 # ifdef __cplusplus
 
@@ -13,45 +15,40 @@ typedef struct dungeon dungeon_t;
 extern "C" {
 # endif
 
+
 uint32_t parse_descriptions(dungeon_t *d);
 uint32_t print_descriptions(dungeon_t *d);
 uint32_t destroy_descriptions(dungeon_t *d);
+character_t *generate_monster(dungeon_t *d);
+object_t *generate_object(dungeon_t *d);
+
+typedef enum object_type {
+  objtype_no_type,
+  objtype_WEAPON,
+  objtype_OFFHAND,
+  objtype_RANGED,
+  objtype_ARMOR,
+  objtype_HELMET,
+  objtype_CLOAK,
+  objtype_GLOVES,
+  objtype_BOOTS,
+  objtype_RING,
+  objtype_AMULET,
+  objtype_LIGHT,
+  objtype_SCROLL,
+  objtype_BOOK,
+  objtype_FLASK,
+  objtype_GOLD,
+  objtype_AMMUNITION,
+  objtype_FOOD,
+  objtype_WAND,
+  objtype_CONTAINER
+} object_type_t;
+
+extern const char object_symbol[];
 
 # ifdef __cplusplus
 } /* extern "C" */
-
-# define ITEM_WEAPON       0x00000001
-# define ITEM_OFFHAND      0x00000002
-# define ITEM_RANGED       0x00000004
-# define ITEM_ARMOR        0x00000008
-# define ITEM_HELMET       0x00000010
-# define ITEM_CLOAK        0x00000020
-# define ITEM_GLOVES       0x00000040
-# define ITEM_BOOTS        0x00000080
-# define ITEM_RING         0x00000100
-# define ITEM_AMULET       0x00000200
-# define ITEM_LIGHT        0x00000400
-# define ITEM_SCROLL       0x00000800
-# define ITEM_BOOK         0x00001000
-# define ITEM_FLASK        0x00002000
-# define ITEM_GOLD         0x00004000
-# define ITEM_AMMO         0x00008000
-# define ITEM_FOOD         0x00010000
-# define ITEM_WAND         0x00020000
-# define ITEM_CONTAINER    0x00040000
-# define ITEM_BIT19        0x00080000
-# define ITEM_BIT20        0x00100000
-# define ITEM_BIT21        0x00200000
-# define ITEM_BIT22        0x00400000
-# define ITEM_BIT23        0x00800000
-# define ITEM_BIT24        0x01000000
-# define ITEM_BIT25        0x02000000
-# define ITEM_BIT26        0x04000000
-# define ITEM_BIT27        0x08000000
-# define ITEM_BIT28        0x10000000
-# define ITEM_BIT29        0x20000000
-# define ITEM_BIT30        0x40000000
-# define ITEM_BIT31        0x80000000
 
 class monster_description {
  private:
@@ -73,32 +70,52 @@ class monster_description {
            const dice &hitpoints,
            const dice &damage);
   std::ostream &print(std::ostream &o);
+
+  friend character_t *generate_monster(dungeon_t *);
 };
 
-class item_description {
+class object_description {
  private:
   std::string name, description;
-  uint32_t type, color;
-  dice attributes, speed, hit, damage, weight, dodge, def, val;
+  object_type_t type;
+  uint32_t color;
+  dice hit, damage, dodge, defence, weight, speed, attribute, value;
  public:
-  item_description() : name(),       description(), type(0),   color(0),
-                          attributes(), speed(),       hit(), damage(), weight(),
-                          dodge(), def(), val()
+  object_description() : name(),    description(), type(objtype_no_type),
+                         color(0),  hit(),         damage(),
+                         dodge(),   defence(),     weight(),
+                         speed(),   attribute(),   value()
   {
   }
   void set(const std::string &name,
            const std::string &description,
-           const uint32_t &type,
+           const object_type_t type,
            const uint32_t color,
-           const dice &attributes,
-           const dice &speed,
            const dice &hit,
            const dice &damage,
-           const dice &weight,
            const dice &dodge,
-           const dice &def,
-           const dice &val);
+           const dice &defence,
+           const dice &weight,
+           const dice &speed,
+           const dice &attrubute,
+           const dice &value);
   std::ostream &print(std::ostream &o);
+  /* Need all these accessors because otherwise there is a *
+   * circular dependancy that is difficult to get around.  */
+  inline const std::string &get_name() const { return name; }
+  inline const std::string &get_description() const { return description; }
+  inline const object_type_t get_type() const { return type; }
+  inline const uint32_t get_color() const { return color; }
+  inline const dice get_hit() const { return hit; }
+  inline const dice get_damage() const { return damage; }
+  inline const dice get_dodge() const { return dodge; }
+  inline const dice get_defence() const { return defence; }
+  inline const dice get_weight() const { return weight; }
+  inline const dice get_speed() const { return speed; }
+  inline const dice get_attribute() const { return attribute; }
+  inline const dice get_value() const { return value; }
+
+  friend void gen_object(dungeon_t *d);
 };
 
 # endif

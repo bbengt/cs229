@@ -3,6 +3,7 @@
 
 #include "io.h"
 #include "move.h"
+#include "object.h"
 
 /* We're going to be working in a standard 80x24 terminal, and, except when *
  * the PC is near the edges, we're going to restrict it to the centermost   *
@@ -29,6 +30,14 @@ void io_init_terminal(void)
   noecho();
   curs_set(0);
   keypad(stdscr, TRUE);
+  start_color();
+  init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
+  init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+  init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+  init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
 }
 
 void io_reset_terminal(void)
@@ -100,6 +109,31 @@ void io_update_offset(dungeon_t *d)
   }
 }
 
+void io_display_tunnel(dungeon_t *d)
+{
+  uint32_t y, x;
+  clear();
+  for (y = 0; y < DUNGEON_Y; y++) {
+    for (x = 0; x < DUNGEON_X; x++) {
+      mvprintw(y, x*2, "%02hhx",
+               d->pc_tunnel[y][x] <= 255 ? d->pc_tunnel[y][x] : 255);
+    }
+  }
+  refresh();
+}
+
+void io_display_distance(dungeon_t *d)
+{
+  uint32_t y, x;
+  clear();
+  for (y = 0; y < DUNGEON_Y; y++) {
+    for (x = 0; x < DUNGEON_X; x++) {
+      mvprintw(y, x*2, "%02hhx", d->pc_distance[y][x]);
+    }
+  }
+  refresh();
+}
+
 void io_display_huge(dungeon_t *d)
 {
   uint32_t y, x;
@@ -108,7 +142,13 @@ void io_display_huge(dungeon_t *d)
   for (y = 0; y < DUNGEON_Y; y++) {
     for (x = 0; x < DUNGEON_X; x++) {
       if (d->character[y][x]) {
+        attron(COLOR_PAIR(d->character[y][x]->color));
         mvaddch(y, x, d->character[y][x]->symbol);
+        attroff(COLOR_PAIR(d->character[y][x]->color));
+      } else if (d->object[y][x]) {
+        attron(COLOR_PAIR(get_color(d->object[y][x])));
+        mvaddch(y, x, get_symbol(d->object[y][x]));
+        attroff(COLOR_PAIR(get_color(d->object[y][x])));
       } else {
         switch (mapxy(x, y)) {
         case ter_wall:
@@ -120,7 +160,7 @@ void io_display_huge(dungeon_t *d)
         case ter_floor:
         case ter_floor_room:
         case ter_floor_hall:
-        case ter_floor_tentative:
+        case ter_floor_tunnel:
           mvaddch(y, x, '.');
           break;
         case ter_debug:
@@ -147,13 +187,29 @@ void io_display(dungeon_t *d)
 {
   uint32_t y, x;
 
+  if (d->render_whole_dungeon) {
+    io_display_huge(d);
+    return;
+  }
+
   clear();
   for (y = 0; y < 24; y++) {
     for (x = 0; x < 80; x++) {
       if (d->character[d->io_offset[dim_y] + y]
                       [d->io_offset[dim_x] + x]) {
+        attron(COLOR_PAIR(d->character[d->io_offset[dim_y] + y]
+                                      [d->io_offset[dim_x] + x]->color));
         mvaddch(y, x, d->character[d->io_offset[dim_y] + y]
                                   [d->io_offset[dim_x] + x]->symbol);
+        attroff(COLOR_PAIR(d->character[d->io_offset[dim_y] + y]
+                                       [d->io_offset[dim_x] + x]->color));
+      } else if (d->object[d->io_offset[dim_y] + y][d->io_offset[dim_x] + x]) {
+        attron(COLOR_PAIR(get_color(d->object[d->io_offset[dim_y] + y]
+                                             [d->io_offset[dim_x] + x])));
+        mvaddch(y, x, get_symbol(d->object[d->io_offset[dim_y] + y]
+                                          [d->io_offset[dim_x] + x]));
+        attroff(COLOR_PAIR(get_color(d->object[d->io_offset[dim_y] + y]
+                                              [d->io_offset[dim_x] + x])));
       } else {
         switch (mapxy(d->io_offset[dim_x] + x,
                       d->io_offset[dim_y] + y)) {
@@ -166,7 +222,7 @@ void io_display(dungeon_t *d)
         case ter_floor:
         case ter_floor_room:
         case ter_floor_hall:
-        case ter_floor_tentative:
+        case ter_floor_tunnel:
           mvaddch(y, x, '.');
           break;
         case ter_debug:
@@ -361,6 +417,24 @@ void io_handle_input(dungeon_t *d)
       /* Extra command, not in the spec.  H is for Huge: draw the whole *
        * dungeon, the pre-curses way.  Doesn't use a player turn.       */
       io_display_huge(d);
+      fail_code = 1;
+      break;
+    case 'T':
+      /* New command.  Display the distances for tunnelers.  Displays   *
+       * in hex with two characters per cell.                           */
+      io_display_tunnel(d);
+      fail_code = 1;
+      break;
+    case 'D':
+      /* New command.  Display the distances for non-tunnelers.         *
+       *  Displays in hex with two characters per cell.                 */
+      io_display_distance(d);
+      fail_code = 1;
+      break;
+    case 's':
+      /* New command.  Return to normal display after displaying some   *
+       * special screen.                                                */
+      io_display(d);
       fail_code = 1;
       break;
     default:

@@ -16,7 +16,7 @@
 static void usage(char *name)
 {
   fprintf(stderr,
-          "Usage: %s [-r|--rand <seed>]\n"
+          "Usage: %s [-r|--rand <seed>] [-h|--huge]\n"
           "%*c[-n|--nummon <number of monsters>]\n",
           name, (int) strlen(name) + 8, ' ');
 
@@ -32,10 +32,14 @@ int main(int argc, char *argv[])
   uint32_t i;
   uint32_t do_seed;
   uint32_t long_arg;
+  uint32_t do_huge;
+
+  memset(&d, 0, sizeof (d));
 
   /* Default behavior: Seed with the time, generate a new dungeon, *
    * and don't write to disk.                                      */
   do_seed = 1;
+  do_huge = 0;
   nummon = 10;
 
   /* The project spec requires '--load' and '--store'.  It's common *
@@ -73,6 +77,13 @@ int main(int argc, char *argv[])
             usage(argv[0]);
           }
           break;
+        case 'h':
+          if ((!long_arg && argv[i][2]) ||
+              (long_arg && strcmp(argv[i], "-huge"))) {
+            usage(argv[0]);
+          }
+          do_huge = 1;
+          break;
         default:
           usage(argv[0]);
         }
@@ -89,13 +100,16 @@ int main(int argc, char *argv[])
     seed = (tv.tv_usec ^ (tv.tv_sec << 20)) & 0xffffffff;
   }
 
+  if (do_huge) {
+    d.render_whole_dungeon = 1;
+  } else {
+    d.render_whole_dungeon = 0;
+  }
+
   printf("Seed is %ld.\n", seed);
   srand(seed);
 
   parse_descriptions(&d);
-  print_descriptions(&d);
-  destroy_descriptions(&d);
-  return 0;
 
   io_init_terminal();
   init_dungeon(&d);
@@ -104,6 +118,7 @@ int main(int argc, char *argv[])
     gen_dungeon(&d);
     config_pc(&d);
     gen_monsters(&d, nummon, 0);
+    gen_objects(&d, 10);
   }
 
   io_display(&d);
@@ -135,6 +150,7 @@ int main(int argc, char *argv[])
   }
 
   pc_delete(d.pc.pc);
+  destroy_descriptions(&d);
   delete_dungeon(&d);
 
   return 0;

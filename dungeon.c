@@ -16,6 +16,7 @@
 #include "pc.h"
 #include "npc.h"
 #include "move.h"
+#include "object.h"
 
 /* Adds a "room shrinking" phase if it has trouble placing all the rooms. *
  * This allows rooms to become smaller than are specified in the problem  *
@@ -425,7 +426,9 @@ static int empty_dungeon(dungeon_t *d)
     for (x = 0; x < DUNGEON_X; x++) {
       mapxy(x, y) = ter_wall;
       hardnessxy(x, y) = rand_range(1, 254);
+      d->seen[y][x] = 0;
       d->character[y][x] = NULL;
+      d->object[y][x] = 0;
       if (y == 0 || y == DUNGEON_Y - 1 ||
           x == 0 || x == DUNGEON_X - 1) {
         mapxy(x, y) = ter_wall_immutable;
@@ -951,6 +954,7 @@ void delete_dungeon(dungeon_t *d)
 {
   heap_delete(&d->next_turn);
   memset(d->character, 0, sizeof (d->character));
+  destroy_objects(d);
 }
 
 void init_dungeon(dungeon_t *d)
@@ -981,4 +985,5 @@ void new_dungeon(dungeon_t *d)
    * presumably we've already done that testing.  We'll just put 10 in for *
    * now.                                                                  */
   gen_monsters(d, 10, d->pc.next_turn);
+  gen_objects(d, 10);
 }

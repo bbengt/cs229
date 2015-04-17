@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <ncurses.h> /* for COLOR_WHITE */
 
 #include "string.h"
 
@@ -33,6 +34,7 @@ void place_pc(dungeon_t *d)
 void config_pc(dungeon_t *d)
 {
   d->pc.symbol = '@';
+  d->pc.color = COLOR_WHITE;
 
   place_pc(d);
 
@@ -49,6 +51,9 @@ void config_pc(dungeon_t *d)
   d->character[d->pc.position[dim_y]][d->pc.position[dim_x]] = &d->pc;
 
   io_calculate_offset(d);
+
+  dijkstra(d);
+  dijkstra_tunnel(d);
 }
 
 uint32_t pc_next_pos(dungeon_t *d, pair_t dir)

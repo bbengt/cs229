@@ -8,11 +8,15 @@
 typedef struct dungeon dungeon_t;
 typedef struct npc npc_t;
 typedef struct pc pc_t;
+typedef struct dice_t dice_t;
 
 typedef struct character {
   char symbol;
+  uint32_t color;
   pair_t position;
   uint32_t speed;
+  int32_t hp;
+  const dice_t *damage;
   uint32_t next_turn;
   uint32_t alive;
   /* The priority queue is not stable.  It's nice to have a record of *
