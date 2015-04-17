@@ -4,6 +4,7 @@
 #include "io.h"
 #include "move.h"
 #include "object.h"
+#include "pc.h"
 
 /* We're going to be working in a standard 80x24 terminal, and, except when *
  * the PC is near the edges, we're going to restrict it to the centermost   *
@@ -337,20 +338,6 @@ void io_look_mode(dungeon_t *d)
       }
       break;
     }
-    switch(key) {
-      case 'w':
-        // wear an item
-        break;
-      case 't':
-        // take off an item
-        break;
-      case 'd':
-        // drop an item
-        break;
-      case 'x':
-        // expunge an item
-        break;
-    }
     io_display(d);
   } while (1);
 }
@@ -450,6 +437,30 @@ void io_handle_input(dungeon_t *d)
        * special screen.                                                */
       io_display(d);
       fail_code = 1;
+      break;
+    case 'w':
+      ;
+      // TODO: Prompt for equipment slot
+      int equip_slot = 0;
+      equip_item(d, equip_slot);
+      break;
+    case 't':
+      ;
+      // TODO: Prompt for equipment slot
+      int remove_slot = 0;
+      remove_item(d, remove_slot); // TODO: prompt for slot
+      break;
+    case 'd':
+      ;
+      // TODO: Prompt for carry slot
+      int drop_slot = 0;
+      drop_item(d, drop_slot);
+      break;
+    case 'x':
+      ;
+      // TODO: Prompt for carry slot
+      int expunge_slot = 0;
+      expunge_item(d, expunge_slot);
       break;
     default:
       /* Also not in the spec.  It's not always easy to figure out what *

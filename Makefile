@@ -11,7 +11,7 @@ BIN = rlg229
 OBJS = rlg229.o dungeon.o move.o utils.o heap.o character.o pc.o npc.o io.o \
        dice.o descriptions.o object.o
 
-all: $(BIN) etags
+all: $(BIN)
 
 $(BIN): $(OBJS)
 	@$(ECHO) Linking $@
@@ -36,7 +36,3 @@ clean:
 clobber: clean
 	@$(ECHO) Removing backup files
 	@$(RM) *~ \#*
-
-etags:
-	@$(ECHO) Updating TAGS
-	@etags *.[ch] *.cpp
