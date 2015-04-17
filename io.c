@@ -337,6 +337,20 @@ void io_look_mode(dungeon_t *d)
       }
       break;
     }
+    switch(key) {
+      case 'w':
+        // wear an item
+        break;
+      case 't':
+        // take off an item
+        break;
+      case 'd':
+        // drop an item
+        break;
+      case 'x':
+        // expunge an item
+        break;
+    }
     io_display(d);
   } while (1);
 }

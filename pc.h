@@ -6,10 +6,12 @@
 # include "dims.h"
 
 typedef struct dungeon dungeon_t;
+typedef void *object_description_t;
 
 typedef struct pc {
   char name[40];
   char catch_phrase[80];
+  object_description_t inventory[10];
 } pc_t;
 
 void pc_delete(pc_t *pc);

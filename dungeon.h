@@ -29,6 +29,7 @@ extern "C" {
 #define DUNGEON_SAVE_VERSION   1U
 #define VISUAL_RANGE           30
 #define PC_SPEED               10
+#define PC_HEALTh              100
 
 #define mappair(pair) (d->map[pair[dim_y]][pair[dim_x]])
 #define mapxy(x, y) (d->map[y][x])
