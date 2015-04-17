@@ -4,15 +4,15 @@
 # include <stdint.h>
 
 # include "dims.h"
+# include "object.h"
 
 typedef struct dungeon dungeon_t;
-typedef void *object_description_t;
 
 typedef struct pc {
   char name[40];
   char catch_phrase[80];
-  object_description_t inventory[10];
-  object_description_t equipment[12];
+  object_t inventory[10];
+  object_t equipment[12];
 } pc_t;
 
 void pc_delete(pc_t *pc);

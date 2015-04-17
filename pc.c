@@ -84,6 +84,9 @@ uint32_t equip_item(dungeon_t *d, int slot) {
   if(slot < 0 || slot > 12) {
     return 1;
   }
+  if(!d->object[d->pc.position[dim_y]][d->pc.position[dim_x]]) {
+    return 1;
+  }
 
   return 0;
 }
