@@ -78,3 +78,20 @@ uint32_t pc_next_pos(dungeon_t *d, pair_t dir)
 
   return 0;
 }
+
+uint32_t equip_item(dungeon_t *d) {
+
+  return 0;
+}
+uint32_t drop_item(dungeon_t *d, int slot) {
+
+  return 0;
+}
+uint32_t remove_item(dungeon_t *d, int slot) {
+
+  return 0;
+}
+uint32_t expunge_item(dungeon_t *d, int slot) {
+
+  return 0;
+}

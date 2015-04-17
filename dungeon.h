@@ -30,6 +30,7 @@ extern "C" {
 #define VISUAL_RANGE           30
 #define PC_SPEED               10
 #define PC_HEALTh              100
+#define PC_DAMAGE              "0+1d4"
 
 #define mappair(pair) (d->map[pair[dim_y]][pair[dim_x]])
 #define mapxy(x, y) (d->map[y][x])
