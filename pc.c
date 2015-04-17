@@ -81,17 +81,33 @@ uint32_t pc_next_pos(dungeon_t *d, pair_t dir)
 
 uint32_t equip_item(dungeon_t *d, int slot) {
 
+  if(slot < 0 || slot > 12) {
+    return 1;
+  }
+
   return 0;
 }
 uint32_t drop_item(dungeon_t *d, int slot) {
+
+  if(slot < 0 || slot > 12) {
+    return 1;
+  }
 
   return 0;
 }
 uint32_t remove_item(dungeon_t *d, int slot) {
 
+  if(slot < 0 || slot > 12) {
+    return 1;
+  }
+
   return 0;
 }
 uint32_t expunge_item(dungeon_t *d, int slot) {
+
+  if(slot < 0 || slot > 12) {
+    return 1;
+  }
 
   return 0;
 }
