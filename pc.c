@@ -104,6 +104,10 @@ uint32_t drop_item(dungeon_t *d, int slot) {
     return 1;
   }
 
+  object_t *o = d->pc.pc->inventory[slot];
+  d->object[d->pc.position[dim_y]][d->pc.position[dim_x]] = o;
+  free(d->pc.pc->inventory[slot]);
+
   return 0;
 }
 uint32_t remove_item(dungeon_t *d, int slot) {
@@ -120,8 +124,8 @@ uint32_t expunge_item(dungeon_t *d, int slot) {
     return 1;
   }
 
-  object_t o = d->pc.pc->inventory[slot];
-  pair_t *coords = get_coords(&o);
+  object_t *o = d->pc.pc->inventory[slot];
+  pair_t *coords = get_coords(o);
   delete_object(d, *coords[dim_x], *coords[dim_y]);
 
   return 0;
