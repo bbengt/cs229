@@ -25,8 +25,10 @@
  *   ( 0, 72), (40, 72), (80, 72)                                           */
 
 static uint32_t prompt_for_slot() {
+  mvprintw(0, 0, "Enter slot: ");
+  int slot = getch();
 
-  return 0;
+  return slot;
 }
 
 void io_init_terminal(void)
@@ -445,24 +447,21 @@ void io_handle_input(dungeon_t *d)
       break;
     case 'w':
       ;
-      // TODO: Prompt for equipment slot
       int equip_slot = prompt_for_slot();
       equip_item(d, equip_slot);
       break;
     case 't':
       ;
       int remove_slot = prompt_for_slot();
-      remove_item(d, remove_slot); // TODO: prompt for slot
+      remove_item(d, remove_slot);
       break;
     case 'd':
       ;
-      // TODO: Prompt for carry slot
       int drop_slot = prompt_for_slot();
       drop_item(d, drop_slot);
       break;
     case 'x':
       ;
-      // TODO: Prompt for carry slot
       int expunge_slot = prompt_for_slot();
       expunge_item(d, expunge_slot);
       break;
