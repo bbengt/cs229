@@ -89,12 +89,17 @@ uint32_t equip_item(dungeon_t *d, int slot) {
     return 1;
   }
 
-  // get item at player's location
-  // object_t item = (object_t) d->object[d->pc.position[dim_y]][d->pc.position[dim_x]];
-
-  // check if player has item of that type equipped already
-  //    swap items
-  // else equip item
+  object_t *o = d->object[d->pc.position[dim_y]][d->pc.position[dim_x]];
+  if(d->pc.pc->equipment[slot] != NULL) {
+    int i;
+    for(i = 0; i < 12; i++) {
+      if(d->pc.pc->inventory[i] != NULL) {
+        d->pc.pc->inventory[i] = d->pc.pc->equipment[slot];
+        break;
+      }
+    }
+  }
+  d->pc.pc->equipment[slot] = o;
 
   return 0;
 }
@@ -114,6 +119,15 @@ uint32_t remove_item(dungeon_t *d, int slot) {
 
   if(slot < 0 || slot > 12) {
     return 1;
+  }
+
+  int i;
+  for(i = 0; i < 12; i++) {
+    if(d->pc.pc->inventory[i] != NULL) {
+      d->pc.pc->inventory[i] = d->pc.pc->equipment[slot];
+      break;
+    }
+    d->pc.pc->equipment[slot] = NULL;
   }
 
   return 0;
