@@ -88,3 +88,18 @@ void destroy_objects(dungeon_t *d)
     }
   }
 }
+
+pair_t *get_coords(object_t *o) {
+
+  return &(((object *) o)->position);
+}
+
+void delete_object(dungeon_t *d, int x, int y) {
+
+  if(!d->object[y][x]) {
+    return;
+  }
+  delete (object *) d->object[y][x];
+  d->object[y][x] = 0;
+
+}

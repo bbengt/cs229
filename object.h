@@ -18,6 +18,8 @@ void gen_objects(dungeon_t *d, uint32_t numobj);
 char get_symbol(object_t *o);
 uint32_t get_color(object_t *o);
 void destroy_objects(dungeon_t *d);
+void delete_object(dungeon_t *d, int x, int y);
+pair_t *get_coords(object_t *o);
 
 # ifdef __cplusplus
 
@@ -39,6 +41,7 @@ class object {
 
   friend char get_symbol(object_t *o);
   friend uint32_t get_color(object_t *o);
+  friend pair_t *get_coords(object_t *o);
 };
 
 # endif

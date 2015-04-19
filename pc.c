@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "move.h"
 #include "io.h"
+#include "object.h"
 
 void pc_delete(pc_t *pc)
 {
@@ -88,6 +89,13 @@ uint32_t equip_item(dungeon_t *d, int slot) {
     return 1;
   }
 
+  // get item at player's location
+  // object_t item = (object_t) d->object[d->pc.position[dim_y]][d->pc.position[dim_x]];
+
+  // check if player has item of that type equipped already
+  //    swap items
+  // else equip item
+
   return 0;
 }
 uint32_t drop_item(dungeon_t *d, int slot) {
@@ -111,6 +119,10 @@ uint32_t expunge_item(dungeon_t *d, int slot) {
   if(slot < 0 || slot > 12) {
     return 1;
   }
+
+  object_t o = d->pc.pc->inventory[slot];
+  pair_t *coords = get_coords(&o);
+  delete_object(d, *coords[dim_x], *coords[dim_y]);
 
   return 0;
 }
