@@ -144,3 +144,8 @@ uint32_t expunge_item(dungeon_t *d, int slot) {
 
   return 0;
 }
+
+uint32_t pc_attack_damage(dungeon_t *d) {
+
+  return 0;
+}
