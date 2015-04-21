@@ -9,6 +9,7 @@
 #include "move.h"
 #include "io.h"
 #include "object.h"
+#include "dice.h"
 
 void pc_delete(pc_t *pc)
 {
@@ -147,5 +148,11 @@ uint32_t expunge_item(dungeon_t *d, int slot) {
 
 uint32_t pc_attack_damage(dungeon_t *d) {
 
-  return 0;
+  int damage = 0;
+  int i;
+  for(i = 0; i < 12; i++) {
+    damage += roll_dice_damage(d->pc.pc->inventory[i]);
+  }
+
+  return damage;
 }
