@@ -103,3 +103,8 @@ void delete_object(dungeon_t *d, int x, int y) {
   d->object[y][x] = 0;
 
 }
+
+uint32_t roll_dice_damage(object_t *o) {
+
+  return ((object *) o)->damage.roll();
+}

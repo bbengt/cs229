@@ -26,7 +26,7 @@ pair_t *get_coords(object_t *o);
 } /* extern "C" */
 
 class object {
- private:
+ public:
   const std::string &name;
   const std::string &description;
   object_type_t type;
@@ -35,7 +35,6 @@ class object {
   const dice &damage;
   int32_t hit, dodge, defence, weight, speed, attribute, value;
   object *next;
- public:
   object(const object_description &o, pair_t p, object *next);
   ~object();
 
