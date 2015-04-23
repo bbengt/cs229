@@ -151,7 +151,7 @@ uint32_t pc_attack_damage(dungeon_t *d) {
   int damage = 0;
   int i;
   for(i = 0; i < 12; i++) {
-    damage += roll_dice_damage(d->pc.pc->inventory[i]);
+    // damage += roll_dice_damage(d->pc.pc->inventory[i]);
   }
 
   return damage;

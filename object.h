@@ -4,12 +4,16 @@
 # ifdef __cplusplus
 
 # include <string>
+# include "descriptions.h"
+# include "dims.h"
 
 extern "C" {
 # endif
 
 typedef struct object_t {
 } object_t;
+
+typedef struct dungeon dungeon_t;
 
 void gen_objects(dungeon_t *d, uint32_t numobj);
 char get_symbol(object_t *o);

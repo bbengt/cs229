@@ -2,6 +2,7 @@
 # define DESCRIPTIONS_H
 
 # include <stdint.h>
+#include "dice.h"
 
 typedef struct dungeon dungeon_t;
 typedef struct character character_t;
@@ -10,11 +11,9 @@ typedef struct object_t object_t;
 # ifdef __cplusplus
 
 # include <string>
-# include "dice.h"
 
 extern "C" {
 # endif
-
 
 uint32_t parse_descriptions(dungeon_t *d);
 uint32_t print_descriptions(dungeon_t *d);
