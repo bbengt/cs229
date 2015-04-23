@@ -280,13 +280,12 @@ void move_character(dungeon_t *d, character_t *c, pair_t next)
   d->character[c->position[dim_y]][c->position[dim_x]] = NULL;
   c->position[dim_y] = next[dim_y];
   c->position[dim_x] = next[dim_x];
+
+  // start combat
   if (d->character[c->position[dim_y]][c->position[dim_x]]) {
-    if(c != &d->pc && d->character[c->position[dim_y]][c->position[dim_x]] != &d->pc) {
-      return;
-    }
-    d->character[c->position[dim_y]][c->position[dim_x]]->alive = 0;
-    if (d->character[c->position[dim_y]][c->position[dim_x]] != &d->pc) {
-      d->num_monsters--;
+    if(c == &d->pc) {
+      uint32_t damage = pc_attack_damage(d);
+      process_damage(damage, d->character[c->position[dim_y]][c->position[dim_x]]);
     }
   }
   d->character[c->position[dim_y]][c->position[dim_x]] = c;

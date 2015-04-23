@@ -156,3 +156,10 @@ uint32_t pc_attack_damage(dungeon_t *d) {
 
   return damage;
 }
+
+uint32_t process_damage(uint32_t damage, character_t *recipient) {
+
+  recipient->hp -= damage;
+
+  return 0;
+}

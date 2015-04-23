@@ -24,5 +24,7 @@ uint32_t equip_item(dungeon_t *d, int slot);
 uint32_t drop_item(dungeon_t *d, int slot);
 uint32_t remove_item(dungeon_t *d, int slot);
 uint32_t expunge_item(dungeon_t *d, int slot);
+uint32_t process_damage(uint32_t damage, character_t *recipient);
+uint32_t pc_attack_damage(dungeon_t *d);
 
 #endif
